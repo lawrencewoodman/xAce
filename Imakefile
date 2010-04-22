@@ -1,0 +1,11 @@
+##
+## ADD: -DMITSHM if Xserver is accessable through 
+##               shared memory access
+
+EXTRA_DEFINES = -DSCALE=2 -DWHITE_ON_BLACK
+
+SYS_LIBRARIES = -lX11 -lXext
+
+AllTarget(xace)
+
+NormalProgramTarget(xace,xmain.o z80.o,,,)

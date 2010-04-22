@@ -1,0 +1,87 @@
+15 Feb 1999
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or (at
+your option) any later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+Tiles:
+	README     - this file
+	COPYING	   - the GNU GENERAL PUBLIC LICENSE
+	forth.txt  - crash course in Forth
+	Imakefile  - xmkmf file for creating a system dependent
+                     Makefile
+	makefile.org - a short makefile for building xace
+	ace.rom	   - the rom
+	cbops.c    - Z80 0xCB operands handling
+	edops.c    - Z80 0xED operands handling
+	xace.icon  - an icon
+	xmain.c    - the X engine, main entry and ACE specific
+	z80.c      - Z80 Emulation
+	z80.h      - some macros for Z80 memory access
+	z80ops.c   - Z80 operands handling
+
+Compilation:
+	If you have 'xmkmf'? Run it first and then 'make' xace.
+
+	If you don't have 'xmkmf' then try just to run 'make' with
+	'-f makefile.org' and hope for the best!
+	I haven't done any bigger efforts to make it compile for a
+	lot of platforms. But its short and should be easy to
+	adapt for different platforms.
+
+	If it compiles try running 'xace' and you're off. (I hope)
+
+The ROM?
+	The distribution includes a copy of the Jupiter ACE ROM image. 
+	AFAIK there are no problems with this - I do not have a clue 
+	who bought the remains of Boldfield Computing when they went 
+	broke. (I can't find any trace of their existence) 
+
+Version:
+	v0.4 third distribution. *can now also run on 16 bit display.
+
+	The emulator is up and running. I've added some loading and
+	save capabilities. There is still no sound implemented yet. 
+	Now tested on SGI, FreeBSD, Linux and SunOS platforms.
+
+Description:
+	This emulator is made by me, Edward Patel. The Jupiter ACE 
+	is the real *outsider* micro from the 80's. Instead of having
+	BASIC as the programming language it had FORTH. It was designed
+	by two guys how had worked at Sinclair Research Ltd and was
+	responsible for the famous Sinclair ZX81 and ZX Spectrum. 
+	They are Steven Vickers and Richard Altwasser.
+	For a FAQ (1999) see http://users.aol.com/autismuk/ace/faq.htm
+
+	I made it for the fun of it. As a base I used Russell Marks
+	ZX81 emulator xz81. Which he based on Ian Collier xz80, a 
+	ZX Spectrum emulator for X. The xz81 can be found (1997) at
+	ftp://sunsite.unc.edu/pub/Linux/system/emulators/zx/z81-0.2.tar.gz
+
+Others:
+	Paul Robson (autismuk@aol.com) has made a DOS version and is also
+	the maintainer of the FAQ mentioned earlier.
+
+Credits:
+	Steven Vickers and Richard Altwasser
+	Russell Marks
+	Ian Collier (Ian.Collier@comlab.ox.ac.uk)
+	Paul Robson (autismuk@aol.com)
+	Michael Josefsson (mj@isy.liu.se)
+	Ronald Kneusel (rkneusel@post.its.mcw.edu)	
+
+Contact:
+	e-mail: edward@clarus.se or tiletech@hem.passagen.se
+	
+Share and enjoy! 
+
+-Edward
+
+
+"An idiot with a computer is a faster, better idiot" - Rich Julius
