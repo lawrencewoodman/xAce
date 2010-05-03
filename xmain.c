@@ -560,7 +560,9 @@ static int image_init()
       scrn_freq=rrnoshm;
    }
    linelen=ximage->bytes_per_line/SCALE;
-   if(linelen!=32 && linelen!=256 && linelen!=512)
+   
+   /* The following represent 4, 8, 16 or 32 bpp repectively */
+   if(linelen!=32 && linelen!=256 && linelen!=512 && linelen!=1024)
       fprintf(stderr,"Line length=%d; expect strange results!\n",linelen);
 #if 0
    if(linelen==32 &&
@@ -1507,141 +1509,137 @@ check_events()
  */
 
 refresh(){
-   int h,i,j,k,l,m,n;
-   int attr;
-   unsigned char *ptr,*cptr,*dst,*tmp;
-   unsigned char val;
-   int x,y,a,b,c,d,inv,x2,mask;
-   int pasteol;
-   int xmin,ymin,xmax,ymax;
-   int ofs;
+	int h,i,j,k,l,m,n;
+	int attr;
+	unsigned char *ptr,*cptr,*dst;
+	unsigned *tmp;
+	unsigned char val;
+	int x,y,a,b,c,d,inv,x2,mask;
+	int pasteol;
+	int xmin,ymin,xmax,ymax;
+	int ofs;
+	int internalPixelScaler;
+	int imageIndex;
      
 #ifdef SPOOLING_HOOK
-   if (spoolFile) {     
-     if (flipFlop==1) {
-       process_keypress(NULL);
-     }
-     if (flipFlop==3) {
-       flipFlop=0;
-       clear_keyboard();
-     }
-     flipFlop++;
-   }
+	if (spoolFile) {     
+		if (flipFlop==1) {
+			process_keypress(NULL);
+		}
+		if (flipFlop==3) {
+			flipFlop=0;
+			clear_keyboard();
+		}
+		flipFlop++;
+	}
 #endif
 
-   if(borderchange>0)
-     {
-     /* XXX what about expose events? need to set borderchange... */
-     XSetWindowBackground(display,borderwin,white);
-     XClearWindow(display,borderwin);
-     XFlush(display);
-     borderchange=0;
-     }
+	if(borderchange>0)
+	{
+		/* XXX what about expose events? need to set borderchange... */
+		XSetWindowBackground(display,borderwin,white);
+		XClearWindow(display,borderwin);
+		XFlush(display);
+		borderchange=0;
+	}
 
-   /* draw normal lo-res screen */
+	/* draw normal lo-res screen */
    
-   /* translate to char map, comparing against previous */
+	/* translate to char map, comparing against previous */
    
-   ptr=mem+0x2400;	/* D_FILE */
+	ptr=mem+0x2400;	/* D_FILE */
    
-   /* since we can't just do "don't bother if it's junk" as we always
-    * need to draw a screen, just draw *valid* junk that won't result
-    * in a segfault or anything. :-)
-    */
-   if(ptr-mem<0 || ptr-mem>0xf000) ptr=mem+0xf000;
-   /*     ptr++;	/* skip first HALT */
+	/* since we can't just do "don't bother if it's junk" as we always
+	 * need to draw a screen, just draw *valid* junk that won't result
+	 * in a segfault or anything. :-)
+	 */
+	if(ptr-mem<0 || ptr-mem>0xf000) ptr=mem+0xf000;
+	/*     ptr++;	/* skip first HALT */
    
-   cptr=mem+0x2c00;	/* char. set */
+	cptr=mem+0x2c00;	/* char. set */
    
-   xmin=31; ymin=23; xmax=0; ymax=0;
+	xmin=31; ymin=23; xmax=0; ymax=0;
    
-   ofs=0;
-   for(y=0;y<24;y++)
-     {
-       pasteol=0;
-       for(x=0;x<32;x++,ptr++,ofs++)
-         {
-           c=*ptr;
+	internalPixelScaler = linelen / 256;
+   
+   
+	ofs=0;
+	for(y=0;y<24;y++)
+	{
+		pasteol=0;
+		for(x=0;x<32;x++,ptr++,ofs++)
+		{
+			c=*ptr;
 	   
-	   if((chrmap[ofs]=c)!=chrmap_old[ofs] || refresh_screen)
-	     {
-	       /* update size of area to be drawn */
-	       if(x<xmin) xmin=x;
-	       if(y<ymin) ymin=y;
-	       if(x>xmax) xmax=x;
-	       if(y>ymax) ymax=y;
+			if((chrmap[ofs]=c)!=chrmap_old[ofs] || refresh_screen)
+			{
+				/* update size of area to be drawn */
+				if(x<xmin) xmin=x;
+				if(y<ymin) ymin=y;
+				if(x>xmax) xmax=x;
+				if(y>ymax) ymax=y;
 	       
-	       /* draw character into image */
-	       inv=(c&128); c&=127;
+				/* draw character into image */
+				inv=(c&128); c&=127;
 	       
-	       for(b=0;b<8;b++)
-		 {
-		   d=cptr[c*8+b]; if(inv) d^=255;
+				for(b=0;b<8;b++)
+				{
+					d=cptr[c*8+b]; if(inv) d^=255;
 		   
-		   if(linelen==32)
-		     {
-		       /* 1-bit mono */
-		       /* XXX doesn't support SCALE>1 */
-		       image[(y*8+b)*linelen+x]=~d;
-		     }
-		   else
-		     {
-		       /* assume 8-bit */
-		       unsigned short *t;
-		       tmp=image+((y*8+b)*hsize+x*8)*SCALE*(linelen==512?2:1);
-		       t = (unsigned short*)tmp;
-		       mask=256;
-		       while((mask>>=1)) 
+					if(linelen==32)
+					{
+						/* 1-bit mono */
+						/* XXX doesn't support SCALE>1 */
+						image[(y*8+b)*linelen+x]=~d;
+					}
+					else
+					{
+						tmp = image+((y*8+b)*hsize+x*8)*SCALE*internalPixelScaler;
+						mask=256;
+						while (mask>>=1) 
+						{
 #if SCALE<2
-			 {
-			   /* i.e. actual size */
-			   if (linelen==512) 
-			     *t++=(d&mask)?black:white;			   
-			   else
-			     *tmp++=(d&mask)?black:white;
-			 }
+							*tmp++=(d&mask)?black:white;
 #else
-		       {
-			 m=((d&mask)?black:white);
-			 for(j=0;j<SCALE;j++)
-			   for(k=0;k<SCALE;k++)
-			     if (linelen==512) 
-			       t[j*hsize+k]=m;
-			     else
-			       tmp[j*hsize+k]=m;
-			 tmp+=SCALE;
-			 t+=SCALE;
-		       }
-#endif
+							m=((d&mask)?black:white);
+							for(j=0;j<SCALE;j++) {
+								for(k=0;k<SCALE;k++) {
+									tmp[j*hsize+k]=m;
+
+								}
+							}
+							tmp+=SCALE;
+#endif					
+						}
+					}
+				}		     
 		     }
-		 }
-	     }
-         }
-     }
+		}
+	}
    
-   /* now, copy new to old for next time */
-   memcpy(chrmap_old,chrmap,768);
+	/* now, copy new to old for next time */
+	memcpy(chrmap_old,chrmap,768);
    
-   /* next bit happens for both hi and lo-res */
+	/* next bit happens for both hi and lo-res */
    
-   if(refresh_screen) xmin=0,ymin=0,xmax=31,ymax=23;
+	if(refresh_screen) xmin=0,ymin=0,xmax=31,ymax=23;
    
-   if(xmax>=xmin && ymax>=ymin)
-     {     
+	if(xmax>=xmin && ymax>=ymin)
+	{     
 #ifdef MITSHM
-       if(mitshm)
-	 XShmPutImage(display,mainwin,maingc,ximage,
-		      xmin*8*SCALE,ymin*8*SCALE,xmin*8*SCALE,ymin*8*SCALE,
-		      (xmax-xmin+1)*8*SCALE,(ymax-ymin+1)*8*SCALE,0);
-       else
+		if(mitshm)
+			XShmPutImage(display,mainwin,maingc,ximage,
+						 xmin*8*SCALE,ymin*8*SCALE,xmin*8*SCALE,ymin*8*SCALE,
+						 (xmax-xmin+1)*8*SCALE,(ymax-ymin+1)*8*SCALE,0);
+		else
 #endif
-	 XPutImage(display,mainwin,maingc,ximage,
-		   xmin*8*SCALE,ymin*8*SCALE,xmin*8*SCALE,ymin*8*SCALE,
-		   (xmax-xmin+1)*8*SCALE,(ymax-ymin+1)*8*SCALE);
-     }
+			XPutImage(display,mainwin,maingc,ximage,
+					  xmin*8*SCALE,ymin*8*SCALE,xmin*8*SCALE,ymin*8*SCALE,
+					  (xmax-xmin+1)*8*SCALE,(ymax-ymin+1)*8*SCALE);
+	}
    
-   XFlush(display);
-   refresh_screen=0;
+	XFlush(display);
+	refresh_screen=0;
 }
 
 

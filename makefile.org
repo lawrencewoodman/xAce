@@ -18,7 +18,7 @@ XROOT=/usr/X11R6
 # this looks wrong, but *ops.c are actually #include'd by z80.c
 ACE_OBJS=xmain.o z80.o
 
-CFLAGS= -I$(XROOT)/include $(WOBDEF) $(SCALEDEF)
+CFLAGS= -I$(XROOT)/include $(WOBDEF) $(SCALEDEF) 
 
 all: xace
 
