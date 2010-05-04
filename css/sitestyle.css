@@ -1,0 +1,68 @@
+body 
+{	
+	color: black; 
+	background:#E1E1FF; 
+	font: Arial, Helvetica, sans-serif;
+	font-weight: normal;
+	line-height: 150%;
+
+	margin-top: 1%;
+	margin-left: 10%; 
+	margin-right: 10%;
+
+}
+
+h1#projectTitle
+{
+	text-align: center;
+}    
+
+h2#projectSubTitle
+{
+	text-align: center;
+	color: gray;
+	font-size: 100%;
+}    
+
+
+div#middleBorder 
+{
+	background: white;
+	border: 1px solid #A0A0A0;
+	padding: 1em;
+	margin-top: 0;
+	margin-left: 0;
+	margin-right: 0.5em;
+	margin-bottom: 1em;
+	text-align: left;
+	-moz-border-radius: 10px;
+	-webkit-border-radius: 10px;
+	border-radius: 10px;
+	
+}
+
+
+div:hover#middleBorder 
+{ 
+	border: 1px #00074F solid; 
+}
+
+table#twoColumns td#leftColumn
+{
+	padding-right:2em;
+	vertical-align: top;
+}
+
+table#twoColumns td#rightColumn
+{
+	width: 30%;
+	padding-left: 2em;
+	vertical-align: top;
+}
+
+code
+{
+	font-family: monospace;
+	font-size:120%;
+	font-weight: bold;
+}

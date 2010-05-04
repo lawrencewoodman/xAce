@@ -3,4 +3,41 @@ layout: default
 title: xAce - The Jupiter Ace Emulator
 ---
 
-<p>Welcome to the xAce project page.</p>
+<table id="twoColumns">
+	<tr>
+		<td id="leftColumn">
+			<h2>What is xAce?</h2>
+			xAce is an emulator for the Jupiter Ace that runs under most flavours of Unix.&nbsp; It 
+			was written by Edward Patel and based on a ZX81 emulator called <em>xz81</em> written by 
+			Russell Marks, which was in turn based on Ian Collier&#039;s <em>xz80</em>, a ZX Spectrum
+			emulator for X.
+			
+			<h2>Compiling</h2>
+			First download and extract the sources from 
+			<a href="http://github.com/LawrenceWoodman/xAce/downloads">GitHub</a>.<br />
+			<br />
+			If you have <code>xmkmf</code>? Run:<br />
+			<code>$ xmkmf</code><br /> 
+			<code>$ make</code><br />
+			<br />
+			If you don't have <code>xmkmf</code> then run:<br />
+			<code>$ make -f makefile.org</code><br />
+			<br />
+			Once it has compiled run:<br />
+			<code>$ ./xace</code><br />
+
+		</td>
+			
+		<td id="rightColumn">
+			<h2>Links</h2>
+			<a href="http://github.com/LawrenceWoodman/xAce/downloads">Download xAce</a><br />
+			<a href="http://github.com/LawrenceWoodman/xAce">GitHub Repository</a><br />
+			<a href="http://wiki.github.com/LawrenceWoodman/xAce/">xAce Wiki on GitHub</a><br />
+			<a href="http://www.freelists.org/list/xace-dev">xAce Development Mailing List</a><br />
+			
+			<h2>News</h2>
+			<h3>22nd April 2010</h3>
+			Development recommensed on xAce using version 0.4 as the base.
+		</td>
+	</tr>
+</table>
