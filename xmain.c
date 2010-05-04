@@ -1518,7 +1518,7 @@ refresh(){
 	int pasteol;
 	int xmin,ymin,xmax,ymax;
 	int ofs;
-	int internalPixelScaler;
+	int bytesPerPixel;
 	int imageIndex;
      
 #ifdef SPOOLING_HOOK
@@ -1560,7 +1560,7 @@ refresh(){
    
 	xmin=31; ymin=23; xmax=0; ymax=0;
    
-	internalPixelScaler = linelen / 256;
+	bytesPerPixel = linelen / 256;
    
    
 	ofs=0;
@@ -1594,22 +1594,18 @@ refresh(){
 					}
 					else
 					{
-						tmp = image+((y*8+b)*hsize+x*8)*SCALE*internalPixelScaler;
+						imageIndex = ((y*8+b)*hsize+x*8)*SCALE*bytesPerPixel;
 						mask=256;
 						while (mask>>=1) 
 						{
-#if SCALE<2
-							*tmp++=(d&mask)?black:white;
-#else
 							m=((d&mask)?black:white);
+							
 							for(j=0;j<SCALE;j++) {
-								for(k=0;k<SCALE;k++) {
-									tmp[j*hsize+k]=m;
-
+								for(k=0;k<SCALE*bytesPerPixel;k++) {
+									image[imageIndex+(j*hsize*bytesPerPixel+k)] = m;
 								}
 							}
-							tmp+=SCALE;
-#endif					
+							imageIndex += SCALE*bytesPerPixel;
 						}
 					}
 				}		     
