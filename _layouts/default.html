@@ -17,7 +17,45 @@
 		<div id="middleBorder">
 			<h1 id="projectTitle">xAce</h1>
 			<h2 id="projectSubTitle">The Jupiter Ace Emulator</h2>
-			{{content}}
+			
+			<!-- Menu Begin -->
+				<hr>
+				{% if page.menuOption == 'home' %}
+				<a class="menuItemSelected" href="/">Home</a>
+				{% else %}
+				<a class="menuItemUnselected" href="/">Home</a>
+				{% endif %}
+				
+				{% if page.menuOption == 'contributing' %}
+				<a class="menuItemSelected" href="contributing.html">Contributing</a>
+				{% else %}
+				<a class="menuItemUnselected" href="contributing.html">Contributing</a>
+				{% endif %}
+				<hr>
+			<!-- Menu End -->
+			
+			
+			<table id="twoColumns">
+				<tr>
+					<td id="leftColumn">
+						{{content}}
+					</td>
+			
+					<td id="rightColumn">
+						<h2>Links</h2>
+						<a href="http://github.com/LawrenceWoodman/xAce/downloads">Download xAce</a><br />
+						<a href="http://github.com/LawrenceWoodman/xAce">GitHub Repository</a><br />
+						<a href="http://wiki.github.com/LawrenceWoodman/xAce/">xAce Wiki on GitHub</a><br />
+						<a href="http://www.freelists.org/list/xace-dev">xAce Development Mailing List</a><br />
+			
+						<h2>News</h2>
+						<h3>22nd April 2010</h3>
+						Development recommensed on xAce using version 0.4 as the base.
+					</td>
+				</tr>
+			</table>
+			
+			
 		</div>
 	</body>
 </html>

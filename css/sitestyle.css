@@ -66,3 +66,21 @@ code
 	font-size:120%;
 }
 
+
+/* Menu items */
+a.menuItemSelected
+{
+	font-weight: bold;
+	text-decoration: none;
+	font-size: 150%;
+	padding-right: 1em;
+	color: blue;
+}
+
+a.menuItemUnselected
+{
+	font-weight: normal;
+	text-decoration: none;
+	padding-right: 1em;
+	color: blue;	
+}
