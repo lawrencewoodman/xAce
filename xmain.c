@@ -172,7 +172,6 @@ char **argv;
 loadrom(x)
 unsigned char *x;
 {
-  int i;
   FILE *in;
   
   if((in=fopen("ace.rom", "rb"))!=NULL)
@@ -445,8 +444,6 @@ static XImage *ximage;
 static unsigned char *image;
 static int linelen;
 static int black,white;
-static int bytecycles;
-static int framebytes;
 #ifdef MITSHM
 static XShmSegmentInfo xshminfo;
 #endif
@@ -482,9 +479,8 @@ static Display *open_display(argc,argv)
 int *argc;
 char **argv;
 {
-   int i;
    char *ptr;
-   char *myname="xace",*myclass="XAce";
+
    char dispname[MAX_DISP_LEN];
    Display *display;
 
@@ -1462,7 +1458,6 @@ XKeyEvent *kev;
 
 check_events()
 {
-   int i;
    static XEvent xev;
    XConfigureEvent *conf_ev;
    XCrossingEvent *cev;
@@ -1509,12 +1504,9 @@ check_events()
  */
 
 refresh(){
-	int h,i,j,k,l,m,n;
-	int attr;
-	unsigned char *ptr,*cptr,*dst;
-	unsigned *tmp;
-	unsigned char val;
-	int x,y,a,b,c,d,inv,x2,mask;
+	int j,k,m;
+	unsigned char *ptr,*cptr;
+	int x,y,b,c,d,inv,mask;
 	int pasteol;
 	int xmin,ymin,xmax,ymax;
 	int ofs;
@@ -1554,7 +1546,7 @@ refresh(){
 	 * in a segfault or anything. :-)
 	 */
 	if(ptr-mem<0 || ptr-mem>0xf000) ptr=mem+0xf000;
-	/*     ptr++;	/* skip first HALT */
+	/*     ptr++; 	/* skip first HALT */
    
 	cptr=mem+0x2c00;	/* char. set */
    
