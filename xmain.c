@@ -1546,7 +1546,7 @@ refresh(){
 	 * in a segfault or anything. :-)
 	 */
 	if(ptr-mem<0 || ptr-mem>0xf000) ptr=mem+0xf000;
-	/*     ptr++; 	/* skip first HALT */
+	/*     ptr++; 	*/ /* skip first HALT */
    
 	cptr=mem+0x2c00;	/* char. set */
    
