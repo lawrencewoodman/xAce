@@ -569,7 +569,7 @@ static int image_init()
       fputs("If the display is mixed up, please mail me these values\n",stderr),
       fputs("and describe the display as accurately as possible.\n",stderr);
 #endif
-   ximage->data+=linelen;
+   
    image=ximage->data;
    return 0;
 }
@@ -584,7 +584,7 @@ char **argv;
    XSizeHints xsh;
    XClassHint xch;
    XTextProperty appname, iconname;
-   char *apptext;
+   char *apptext = "xAce";
    char *icontext="XAce";
 
 #ifdef WHITE_ON_BLACK
@@ -594,7 +594,7 @@ char **argv;
    icon=XCreatePixmapFromBitmapData(display,root,icon_bits,
         icon_width,icon_height,black,white,DefaultDepth(display,screen));
 #endif
-   apptext="xace";
+
    xsh.flags=PSize|PMinSize|PMaxSize;
    xsh.min_width=hsize;
    xsh.min_height=vsize;
@@ -616,6 +616,9 @@ char **argv;
    xch.res_class="XAce";
    XSetWMProperties(display,borderwin,&appname,&iconname,argv,
       *argc,&xsh,&xwmh,&xch);
+      
+   XFree(appname.value);
+   XFree(iconname.value);
 }
 
 
@@ -1639,6 +1642,8 @@ closedown(){
       shmdt(xshminfo.shmaddr);
       shmctl(xshminfo.shmid,IPC_RMID,0);
    }
+#else
+   free(ximage->data);
 #endif
    XAutoRepeatOn(display);
    XCloseDisplay(display);
