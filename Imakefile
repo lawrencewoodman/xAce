@@ -2,7 +2,7 @@
 ## ADD: -DMITSHM if Xserver is accessable through 
 ##               shared memory access
 
-EXTRA_DEFINES = -DSCALE=2 -DWHITE_ON_BLACK
+EXTRA_DEFINES = -DSCALE=2 -DWHITE_ON_BLACK -DXACE_VERSION='"(0.4.1)"'
 
 SYS_LIBRARIES = -lX11 -lXext
 
