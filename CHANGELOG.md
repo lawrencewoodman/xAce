@@ -1,6 +1,7 @@
 ## 0.4.1 (TBA)
 
  * Added support for 32bpp displays.
+ * Ensured that all allocated memory was freed when finished with.
  * Improved portability.
 
 ## 0.4 (1997)
