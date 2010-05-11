@@ -585,7 +585,7 @@ char **argv;
    XClassHint xch;
    XTextProperty appname, iconname;
    char *apptext = "xAce";
-   char *icontext="XAce";
+   char *icontext = apptext;
 
 #ifdef WHITE_ON_BLACK
    icon=XCreatePixmapFromBitmapData(display,root,icon_bits,
@@ -612,8 +612,8 @@ char **argv;
    xwmh.input=1;
    xwmh.icon_pixmap=icon;
    xwmh.flags=StateHint|IconPixmapHint|InputHint;
-   xch.res_name="xace";
-   xch.res_class="XAce";
+   xch.res_name = apptext;
+   xch.res_class = apptext;
    XSetWMProperties(display,borderwin,&appname,&iconname,argv,
       *argc,&xsh,&xwmh,&xch);
       
