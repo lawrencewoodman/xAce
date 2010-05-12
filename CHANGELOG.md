@@ -1,8 +1,9 @@
 ## 0.4.1 (TBA)
 
- * Added support for 32bpp displays.
- * Ensured that all allocated memory was freed when finished with.
- * Improved portability.
+ * Adds support for 32bpp displays.
+ * Frees more allocated memory when finished with.
+ * Corrects assignment of strings to variables with no allocated storage.
+ * Improves portability.
 
 ## 0.4 (1997)
 
