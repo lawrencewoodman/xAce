@@ -117,7 +117,7 @@ char **argv;
   struct itimerval itv;
   int tmp=1000/50;	/* 50 ints/sec */
   
-  printf("xace: Jupiter ACE emulator v0.4 (by Edward Patel)\n");
+  printf("xace: Jupiter ACE emulator v%s (by Edward Patel)\n", XACE_VERSION);
   printf("Keys:\n");
   printf("\tESC - Quit xace\n");
   printf("\tF1  - Delete Line\n");
