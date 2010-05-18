@@ -79,11 +79,15 @@ The ROM?
 	Please see boldcomp.email.txt file included for more information.
 
 Version:
-	v0.4.1
+	v0.4.1	See CHANGELOG.md for details of changes.
 
 	The emulator is up and running. I've added some loading and
 	save capabilities. There is still no sound implemented yet. 
 	Now tested on SGI, FreeBSD, Linux and SunOS platforms.
+	
+Loading/Saving External Files
+	Please note that xAce now only uses the '.tap' file extension for loading 
+	and saving files, so older '.byt' and '.dic' files will need renaming.
 
 Others:
 	Paul Robson (old email removed) has made a DOS version and is also
