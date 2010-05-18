@@ -4,6 +4,7 @@
  * Frees more allocated memory when finished with.
  * Corrects assignment of strings to variables with no allocated storage.
  * Improves portability.
+ * Switched to just using .tap instead of .dic and .byt when loading and saving files.
 
 ## 0.4 (1997)
 
