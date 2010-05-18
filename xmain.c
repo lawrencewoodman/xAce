@@ -247,15 +247,9 @@ int cf;
       filename[i]=mem[_hl+1+i]; i++;
     }
     filename[i++]='.';
-    if (mem[8961]) { /* dict or bytes save */
-      filename[i++]='b';
-      filename[i++]='y';
-      filename[i++]='t';
-    } else {
-      filename[i++]='d';
-      filename[i++]='i';
-      filename[i++]='c';
-    }
+    filename[i++]='t';
+    filename[i++]='a';
+    filename[i++]='p';
     filename[i++]='\0';
     printf("Saving to file '%s'\n",filename);
     fp = fopen(filename,"wb");
@@ -342,15 +336,13 @@ int cf;
       filename[i]=mem[9985+1+i]; i++;
     }
     filename[i++]='.';
+    filename[i++]='t';
+    filename[i++]='a';
+    filename[i++]='p';
+    
     if (mem[9985]) { /* dict or bytes load */
-      filename[i++]='b';
-      filename[i++]='y';
-      filename[i++]='t';
       empty_tape = empty_bytes;
     } else {
-      filename[i++]='d';
-      filename[i++]='i';
-      filename[i++]='c';
       empty_tape = empty_dict;
     }
     filename[i++]='\0';
