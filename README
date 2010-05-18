@@ -76,12 +76,10 @@ Compilation:
 
 The ROM?
 	The distribution includes a copy of the Jupiter ACE ROM image. 
-	AFAIK there are no problems with this - I do not have a clue 
-	who bought the remains of Boldfield Computing when they went 
-	broke. (I can't find any trace of their existence) 
+	Please see boldcomp.email.txt file included for more information.
 
 Version:
-	v0.4 third distribution. *can now also run on 16 bit display.
+	v0.4.1
 
 	The emulator is up and running. I've added some loading and
 	save capabilities. There is still no sound implemented yet. 
