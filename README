@@ -44,21 +44,24 @@ WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
-Tiles:
-	README     - this file
-	COPYING	   - the GNU GENERAL PUBLIC LICENSE
-	forth.txt  - crash course in Forth
-	Imakefile  - xmkmf file for creating a system dependent
-                     Makefile
-	makefile.org - a short makefile for building xace
-	ace.rom	   - the rom
-	cbops.c    - Z80 0xCB operands handling
-	edops.c    - Z80 0xED operands handling
-	xace.icon  - an icon
-	xmain.c    - the X engine, main entry and ACE specific
-	z80.c      - Z80 Emulation
-	z80.h      - some macros for Z80 memory access
-	z80ops.c   - Z80 operands handling
+Files:
+	README              - this file
+	CHANGELOG.md        - Lists the changes between versions
+	COPYING	           - the GNU GENERAL PUBLIC LICENSE
+	forth.txt           - crash course in Forth
+	boldcomp.email.txt  - Email from Boldfield Computing shedding light on the 
+                         legal position of distributing the rom with the 
+                         emulator
+	Imakefile           - xmkmf file for creating a system dependent Makefile
+	makefile.org        - a short makefile for building xace
+	ace.rom	           - the rom
+	cbops.c             - Z80 0xCB operands handling
+	edops.c             - Z80 0xED operands handling
+	xace.icon           - an icon
+	xmain.c             - the X engine, main entry and ACE specific
+	z80.c               - Z80 Emulation
+	z80.h               - some macros for Z80 memory access
+	z80ops.c            - Z80 operands handling
 
 Compilation:
 	If you have 'xmkmf'? Run it first and then 'make' xace.
