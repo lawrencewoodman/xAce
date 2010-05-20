@@ -87,13 +87,13 @@ Version:
 	save capabilities. There is still no sound implemented yet. 
 	Now tested on SGI, FreeBSD, Linux and SunOS platforms.
 	
-Loading/Saving External Files
+Loading/Saving External Files:
 	External files are accessed from the current directory.
 	Please note that xAce now only uses the '.tap' file extension for
 	loading	and saving files, so older '.byt' and '.dic' files will
 	need renaming.
 
-Software for the Jupiter Ace
+Software for the Jupiter Ace:
 	The Jupiter Ace Resource Site (http://www.jupiter-ace.co.uk) is
 	the best source for Ace	software.  Download 'TAP files' to work with
 	xAce and rename the .TAP files so that they are in lower-case.
