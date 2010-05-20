@@ -47,7 +47,7 @@ General Public License for more details.
 Files:
 	README              - this file
 	CHANGELOG.md        - Lists the changes between versions
-	COPYING	            - the GNU GENERAL PUBLIC LICENSE
+	COPYING             - the GNU GENERAL PUBLIC LICENSE
 	forth.txt           - crash course in Forth
 	boldcomp.email.txt  - Email from Boldfield Computing shedding light on
 	                      the legal position of distributing the rom with
@@ -56,7 +56,7 @@ Files:
 	Imakefile           - xmkmf file for creating a system dependent
 	                      Makefile
 	makefile.org        - a short makefile for building xace
-	ace.rom	            - the rom
+	ace.rom             - the rom
 	cbops.c             - Z80 0xCB operands handling
 	edops.c             - Z80 0xED operands handling
 	xace.icon           - an icon
