@@ -52,6 +52,7 @@ Files:
 	boldcomp.email.txt  - Email from Boldfield Computing shedding light on
 	                      the legal position of distributing the rom with
 	                      the emulator
+	.gitignore          - Tells Git which files to ignore
 	Imakefile           - xmkmf file for creating a system dependent
 	                      Makefile
 	makefile.org        - a short makefile for building xace
