@@ -3,6 +3,7 @@
  * Copyright (C) 1994 Ian Collier. 
  * xz81 changes (C) 1995-6 Russell Marks.
  * xace changes (C) 1997 Edward Patel.
+ * xace changes (C) 2010 Lawrence Woodman.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
