@@ -66,11 +66,17 @@ Files:
 	z80ops.c            - Z80 operands handling
 
 Requirements:
-	xAce will run on a variety of unix platforms and has been tested
-	most thoroughly on Linux.  To compile it you will need to have
-	the following libraries installed:
-		libx11
-		libxext
+	xAce will run on a variety of Unix platforms and has been tested
+	most thoroughly on Linux.
+
+	To compile it you will need to have the following development
+	libraries installed:
+		libx11   (Often packaged as libx11-dev)
+		libxext  (Often packaged as libxext-dev)
+
+	To ease compilation it would be worth having 'xmkmf' on your system
+	this normally resides in the following package:
+		xutils-dev
 
 Compilation:
 	If you have 'xmkmf'? Run it first and then 'make' xace.
