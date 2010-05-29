@@ -175,7 +175,11 @@ unsigned char *x;
   
   if((in=fopen("ace.rom", "rb"))!=NULL)
     {
-      fread(x,1,8192,in);
+      if (fread(x,1,8192,in) != 8192) {
+	      printf("Couldn't load ROM.\n");
+	      fclose(in);
+	      exit(1);
+      }
       fclose(in);
     }
   else
