@@ -3,6 +3,7 @@
  * Adds support for 32bpp displays.
  * Frees more allocated memory when finished with.
  * Corrects assignment of strings to variables with no allocated storage.
+ * Adds more file I/O error detection.
  * Improves portability.
  * Switched to just using .tap instead of .dic and .byt when loading and saving files.
 
