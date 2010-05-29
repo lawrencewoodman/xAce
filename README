@@ -87,7 +87,7 @@ Compilation:
 	lot of platforms. But its short and should be easy to
 	adapt for different platforms.
 
-	If it compiles try running 'xace' and you're off. (I hope)
+	If it compiles try running './xace' and you're off. (I hope)
 
 The ROM?
 	The distribution includes a copy of the Jupiter ACE ROM image. 
