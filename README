@@ -101,7 +101,9 @@ Loading/Saving External Files:
 	External files are accessed from the current directory.
 	Please note that xAce now only uses the '.tap' file extension for
 	loading	and saving files, so older '.byt' and '.dic' files will
-	need renaming.
+	need renaming.  It is also worth reminding that Unix is case sensitive,
+	and therefore when loading and saving you need to have the capitalization
+	the	same as the external file that you want to access.
 
 Software for the Jupiter Ace:
 	The Jupiter Ace Resource Site (http://www.jupiter-ace.co.uk) is
