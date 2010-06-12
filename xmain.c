@@ -118,12 +118,12 @@ char **argv;
   
   printf("xace: Jupiter ACE emulator v%s (by Edward Patel)\n", XACE_VERSION);
   printf("Keys:\n");
-  printf("\tESC - Quit xace\n");
-  printf("\tF1  - Delete Line\n");
-  printf("\tF4  - Inverse Video\n");
-  printf("\tF9  - Graphics\n");
-  printf("\tCtl - Break\n");
-  printf("\tF12 - Reset\n");
+  printf("\tF1     - Delete Line\n");
+  printf("\tF4     - Inverse Video\n");
+  printf("\tF9     - Graphics\n");
+  printf("\tEsc    - Break\n");
+  printf("\tF12    - Reset\n");
+  printf("\tCtrl-Q - Quit xAce\n");
       
   loadrom(mem);
   patches();
@@ -725,10 +725,22 @@ XKeyEvent *kev;
      XLookupString(kev,buf,2,&ks,NULL);
 
    switch(ks){
-   case XK_Escape:
-     dontpanic();
-     /* doesn't return */
-     break;  
+
+   case XK_q:
+     /* If Ctrl-q then Quit xAce */
+     if (kev->state & ControlMask) {
+       dontpanic();
+       /* doesn't return */
+     } else {
+       keyports[2]&=0xfe;
+     }
+     break;
+
+   case XK_Escape:	/* Jupiter Ace Break */
+     keyports[7]&=0xfe;
+     keyports[0]&=0xfe;
+     break;
+
 #ifdef SPOOLING_HOOK
    case XK_F11: 
      {
@@ -756,6 +768,8 @@ XKeyEvent *kev;
    case XK_Alt_R: 
    case XK_Meta_L: 
    case XK_Meta_R:
+   case XK_Control_L:
+   case XK_Control_R:
      break;
    case XK_F4:
      keyports[3]&=0xf7; 
@@ -763,11 +777,6 @@ XKeyEvent *kev;
      break;
    case XK_F9:
      keyports[4]&=0xfd; 
-     keyports[0]&=0xfe; 
-     break;
-   case XK_Control_L: 
-   case XK_Control_R: 
-     keyports[7]&=0xfe; 
      keyports[0]&=0xfe; 
      break;
    case XK_F1:
@@ -999,9 +1008,10 @@ XKeyEvent *kev;
      break;
    case XK_Q:
      keyports[0]&=0xfe;
-   case XK_q:
-     keyports[2]&=0xfe;
-     break;
+
+    /* XK_q handled above, as it checks if combined with
+       Control for quit command */
+
    case XK_R:
      keyports[0]&=0xfe;
    case XK_r:
