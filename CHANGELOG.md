@@ -6,6 +6,7 @@
  * Adds more file I/O error detection.
  * Improves portability.
  * Switched to just using .tap instead of .dic and .byt when loading and saving files.
+ * Changes keybindings.
 
 ## 0.4 (1997)
 
