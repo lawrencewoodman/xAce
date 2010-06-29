@@ -84,3 +84,9 @@ a.menuItemUnselected
 	padding-right: 1em;
 	color: blue;	
 }
+
+/* News */
+h3.date
+{
+	margin-bottom:0;
+}
