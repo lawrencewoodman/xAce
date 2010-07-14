@@ -1,3 +1,7 @@
+## 0.4.2 (TBC)
+
+ * Creates proper checksum when saving files.
+
 ## 0.4.1 (29th June 2010)
 
  * Adds support for 32bpp displays.

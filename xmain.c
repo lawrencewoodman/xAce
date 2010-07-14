@@ -229,6 +229,18 @@ int h,l,a;
   return(0);
 }
 
+/* Returns a checksum calculated by XORing each value in data */
+char calcChecksum(char *data, int dataSize)
+{
+	int i;
+	char checksum = 0;
+
+	for (i = 0; i < dataSize; i++) {
+		checksum ^= data[i];
+	}
+
+	return checksum;
+}
 
 save_p(c,_de,_hl,cf)
 int c;
@@ -259,17 +271,17 @@ int cf;
     if (!fp) {
       printf("Couldn't open file\n");
     } else {
-      _de++;
-      fputc(_de&0xff,fp);
-      fputc((_de>>8)&0xff,fp);
+      fputc((_de+1)&0xff,fp);
+      fputc(((_de+1)>>8)&0xff,fp);
       fwrite(&mem[_hl],1,_de,fp);
+			fputc(calcChecksum(&mem[_hl], _de), fp);
       firstTime = 0;
     }
   } else {
-    _de++;
-    fputc(_de&0xff,fp);
-    fputc((_de>>8)&0xff,fp);
+    fputc((_de+1)&0xff,fp);
+    fputc(((_de+1)>>8)&0xff,fp);
     fwrite(&mem[_hl],1,_de,fp);
+		fputc(calcChecksum(&mem[_hl], _de), fp);
     fclose(fp);
     fp=NULL;
     firstTime = 1;
