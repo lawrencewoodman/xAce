@@ -48,8 +48,6 @@
 
 #define MAX_DISP_LEN 256
 
-/* #define SPOOLING_HOOK */
-
 #include "xace.icon"
 
 #if SCALE>1
@@ -81,7 +79,7 @@ unsigned char *memptr[8] = {
   mem+0xc000,
   mem+0xe000
 };
-unsigned long tstates=0,tsmax=(1<<30);
+unsigned long tstates=0,tsmax=62500;
 int topspeed=0,lowref=0;
 
 int memattr[8]={0,1,1,1,1,1,1,1}; /* 8K RAM Banks */
@@ -95,6 +93,10 @@ unsigned char chrmap_old[24*32],chrmap[24*32];
 unsigned char himap_old[192*32],himap[192*32];
 
 int refresh_screen=1;
+
+/* The following are used for spooling */
+static FILE *spoolFile=NULL;
+static int flipFlop;
 
 
 void sighandler(a)
@@ -124,8 +126,9 @@ char **argv;
   printf("\tF1     - Delete Line\n");
   printf("\tF4     - Inverse Video\n");
   printf("\tF9     - Graphics\n");
-  printf("\tEsc    - Break\n");
+  printf("\tF11    - Spool from a file\n");
   printf("\tF12    - Reset\n");
+  printf("\tEsc    - Break\n");
   printf("\tCtrl-Q - Quit xAce\n");
       
   loadrom(mem);
@@ -161,10 +164,6 @@ char **argv;
   itv.it_value.tv_sec=itv.it_interval.tv_sec;
   itv.it_value.tv_usec=itv.it_interval.tv_usec;
   setitimer(ITIMER_REAL,&itv,NULL);
-  
-#ifndef SPOOLING_HOOK
-  tsmax=62500;
-#endif  
 
   mainloop();
   
@@ -717,29 +716,25 @@ clear_keyboard()
 }
 
 
-#ifdef SPOOLING_HOOK
-static FILE *spoolFile=NULL;
-static int flipFlop;
-#endif
 
 int process_keypress(kev)
 XKeyEvent *kev;
 {
   char buf[3];
+  char spool_filename[257];
   KeySym ks;
 
-#ifdef SPOOLING_HOOK
   if (spoolFile && (ks=fgetc(spoolFile))) {
     if (ks==EOF) {
       fclose(spoolFile);
       spoolFile=NULL;
       return 0;
     }
-  } else
-#endif
+  } else {
     XLookupString(kev,buf,2,&ks,NULL);
+  }
 
-  switch(ks){
+  switch(ks) {
 
   case XK_q:
     /* If Ctrl-q then Quit xAce */
@@ -756,15 +751,15 @@ XKeyEvent *kev;
     keyports[0]&=0xfe;
     break;
 
-#ifdef SPOOLING_HOOK
   case XK_F11:
-    char str[80];
     printf("Enter spool file:");
-    scanf("%s",str);
-    spoolFile=fopen(str,"rt");
-    flipFlop=0;
+    scanf("%256s",spool_filename);
+    spoolFile=fopen(spool_filename, "rt");
+    if (!spoolFile)
+      fprintf(stderr, "Error: Couldn't open file: %s\n", spool_filename);
+    flipFlop=2;
     break;
-#endif
+
   case XK_F12:
     interrupted=2; /* will cause a reset */
     memset(mem+8192,0xff,57344);
@@ -1533,7 +1528,6 @@ refresh(){
   int bytesPerPixel;
   int imageIndex;
      
-#ifdef SPOOLING_HOOK
   if (spoolFile) {
     if (flipFlop==1) {
       process_keypress(NULL);
@@ -1544,7 +1538,6 @@ refresh(){
     }
     flipFlop++;
   }
-#endif
 
   if(borderchange>0)
   {
