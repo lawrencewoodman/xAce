@@ -27,13 +27,13 @@ extern int memattr[];
 extern int hsize,vsize;
 extern volatile int interrupted;
 
-extern unsigned int in();
-extern unsigned int out();
-extern int do_interrupt();
+extern unsigned int in(int h, int l);
+extern unsigned int out(int h,int l, int a);
+extern void do_interrupt(void);
 extern int mainloop();
-extern int save_p();
-extern int load_p();
-extern int fix_tstates();
+extern void save_p(int c, int _de, int _hl, int cf);
+extern void load_p(int c, int _de, int _hl, int cf);
+extern void fix_tstates(void);
 
 #define fetch(x) (memptr[(unsigned short)(x&0xe000)>>13][(x)&0x1fff])
 #define fetch2(x) ((fetch((x)+1)<<8)|fetch(x))

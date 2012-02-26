@@ -98,24 +98,31 @@ int refresh_screen=1;
 static FILE *spoolFile=NULL;
 static int flipFlop;
 
+/* Prototypes */
+void loadrom(unsigned char *x);
+void patches(void);
+void startup(int *argc, char **argv);
+void check_events(void);
+void refresh(void);
+void closedown(void);
 
-void sighandler(a)
-int a;
+void
+sighandler(int a)
 {
   if(interrupted<2) interrupted=1;
 }
 
 
-void dontpanic()
+void
+dontpanic(int signum)
 {
   closedown();
   exit(1);
 }
 
 
-main(argc,argv)
-int argc;
-char **argv;
+void
+main(int argc, char **argv)
 {
   struct sigaction sa;
   struct itimerval itv;
@@ -169,9 +176,8 @@ char **argv;
   
 }
 
-
-loadrom(x)
-unsigned char *x;
+void
+loadrom(unsigned char *x)
 {
   FILE *in;
   
@@ -191,8 +197,8 @@ unsigned char *x;
   }
 }
 
-
-patches()
+void
+patches(void)
 {
   /* patch the ROM here */
   mem[0x18a7]=0xed; /* for load_p */
@@ -205,8 +211,8 @@ patches()
 }
 
 
-unsigned int in(h,l)
-     int h,l;
+unsigned int
+in(int h, int l)
 {
   if(l==0xfe) /* keyboard */
     switch(h)
@@ -225,14 +231,15 @@ unsigned int in(h,l)
 }
 
 
-unsigned int out(h,l,a)
-int h,l,a;
+unsigned int
+out(int h, int l, int a)
 {
   return(0);
 }
 
 /* Returns a checksum calculated by XORing each value in data */
-char calcChecksum(char *data, int dataSize)
+char
+calc_checksum(char *data, int dataSize)
 {
   int i;
   char checksum = 0;
@@ -244,11 +251,8 @@ char calcChecksum(char *data, int dataSize)
   return checksum;
 }
 
-save_p(c,_de,_hl,cf)
-int c;
-int _de;
-int _hl;
-int cf;
+void
+save_p(int c, int _de, int _hl, int cf)
 {
   char filename[32];
   int i;
@@ -276,14 +280,14 @@ int cf;
       fputc((_de+1)&0xff,fp);
       fputc(((_de+1)>>8)&0xff,fp);
       fwrite(&mem[_hl],1,_de,fp);
-      fputc(calcChecksum(&mem[_hl], _de), fp);
+      fputc(calc_checksum(&mem[_hl], _de), fp);
       firstTime = 0;
     }
   } else {
     fputc((_de+1)&0xff,fp);
     fputc(((_de+1)>>8)&0xff,fp);
     fwrite(&mem[_hl],1,_de,fp);
-    fputc(calcChecksum(&mem[_hl], _de), fp);
+    fputc(calc_checksum(&mem[_hl], _de), fp);
     fclose(fp);
     fp=NULL;
     firstTime = 1;
@@ -331,11 +335,8 @@ unsigned char empty_dict[] = { /* a small forth program */
   0xff,0x00
 };
 
-load_p(c,_de,_hl,cf)
-int c;
-int _de;
-int _hl;
-int cf;
+void
+load_p(int c, int _de, int _hl, int cf)
 {
   char filename[32];
   int i;
@@ -409,15 +410,15 @@ int cf;
   }
 }
 
-
-fix_tstates()
+void
+fix_tstates(void)
 {
   tstates=0;
   pause();
 }
 
-
-do_interrupt()
+void
+do_interrupt(void)
 {
   static int count=0;
 
@@ -484,9 +485,8 @@ char *name;
 }
 
 
-static Display *open_display(argc,argv)
-int *argc;
-char **argv;
+static Display *
+open_display(int *argc, char **argv)
 {
   char *ptr;
 
@@ -584,9 +584,8 @@ static int image_init()
 }
 
 
-static void notify(argc,argv)
-int *argc;
-char **argv;
+static void
+notify(int *argc, char **argv)
 {
   Pixmap icon;
   XWMHints xwmh;
@@ -644,10 +643,8 @@ static void scaleup_init(){
 }
 #endif
 
-
-startup(argc,argv)
-int *argc;
-char **argv;
+void
+startup(int *argc, char **argv)
 {
   display=open_display(argc,argv);
   if(!display){
@@ -702,8 +699,8 @@ char **argv;
   refresh_screen=1;
 }
 
-
-clear_keyboard() 
+void
+clear_keyboard(void)
 {
   keyports[0]=0xff;
   keyports[1]=0xff;
@@ -717,8 +714,8 @@ clear_keyboard()
 
 
 
-int process_keypress(kev)
-XKeyEvent *kev;
+int
+process_keypress(XKeyEvent *kev)
 {
   char buf[3];
   char spool_filename[257];
@@ -739,7 +736,7 @@ XKeyEvent *kev;
   case XK_q:
     /* If Ctrl-q then Quit xAce */
     if (kev->state & ControlMask) {
-      dontpanic();
+      dontpanic(SIGQUIT);
       /* doesn't return */
     } else {
       keyports[2]&=0xfe;
@@ -1112,8 +1109,8 @@ XKeyEvent *kev;
 }
 
 
-void process_keyrelease(kev)
-XKeyEvent *kev;
+void
+process_keyrelease(XKeyEvent *kev)
 {
   char buf[3];
   KeySym ks;
@@ -1470,8 +1467,8 @@ XKeyEvent *kev;
   return;
 }
 
-
-check_events()
+void
+check_events(void)
 {
   static XEvent xev;
   XConfigureEvent *conf_ev;
@@ -1517,8 +1514,9 @@ check_events()
  * a more normal char. map, then find the smallest rectangle which
  * covers all the changes, and update that.
  */
-
-refresh(){
+void
+refresh(void)
+{
   int j,k,m;
   unsigned char *ptr,*cptr;
   int x,y,b,c,d,inv,mask;
@@ -1643,8 +1641,9 @@ refresh(){
   refresh_screen=0;
 }
 
-
-closedown(){
+void
+closedown(void)
+{
 #ifdef MITSHM
   if(mitshm){
     XShmDetach(display,&xshminfo);
