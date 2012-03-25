@@ -8,4 +8,4 @@ SYS_LIBRARIES = -lX11 -lXext
 
 AllTarget(xace)
 
-NormalProgramTarget(xace,xmain.o z80.o,,,)
+NormalProgramTarget(xace,xmain.o tape.o z80.o,,,)

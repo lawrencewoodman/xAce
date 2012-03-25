@@ -59,11 +59,14 @@ Files:
 	ace.rom             - the rom
 	cbops.c             - Z80 0xCB operands handling
 	edops.c             - Z80 0xED operands handling
+	tape.c              - Cassette emulation
+	tape.h              - Header for cassette emulation
 	xace.icon           - an icon
 	xmain.c             - the X engine, main entry and ACE specific
 	z80.c               - Z80 Emulation
 	z80.h               - some macros for Z80 memory access
 	z80ops.c            - Z80 operands handling
+	tests/              - Contains testing routines
 
 Requirements:
 	xAce will run on a variety of Unix platforms and has been tested
@@ -95,20 +98,19 @@ The ROM?
 
 Version:
 	v0.4.1	See CHANGELOG.md for details of changes.
-
 	
 Loading/Saving External Files:
-	External files are accessed from the current directory.
-	Please note that xAce now only uses the '.tap' file extension for
-	loading	and saving files, so older '.byt' and '.dic' files will
-	need renaming.  It is also worth reminding that Unix is case sensitive,
-	and therefore when loading and saving you need to have the capitalization
-	the	same as the external file that you want to access.
+	To attach a tape press 'F3' and enter the name of the tape
+	file that you wish to use.  From this point any loading or
+	saving is done to this file.
+
+	It is important to note that when you save, the rest of the
+	file is truncated.
 
 Software for the Jupiter Ace:
 	The Jupiter Ace Resource Site (http://www.jupiter-ace.co.uk) is
-	the best source for Ace	software.  Download 'TAP files' to work with
-	xAce and rename the .TAP files so that they are in lower-case.
+	the best source for Ace	software.  Here you will find that most
+	of the .TAP files should work.
 
 Useful Links:
 	The xAce project page (http://lawrencewoodman.github.com/xAce/)

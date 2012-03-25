@@ -15,6 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
+#include "tape.h"
 
 #define input(var) {  unsigned short u;\
                       var=u=in(b,c);\
@@ -506,14 +507,13 @@ instr(0xbb,12);
 endinstr;
 
 /* save/load patches */
-
 instr(0xfc,4);
-  load_p(c,de,hl,cy);
-  f=(f&0xc4)|1|(a&0x28); /* set carry */
+  tape_load_p(mem, hl);
+  f=(f&0xc4)|1|(a&0x28);  /* set carry */
 endinstr;
 
 instr(0xfd,4);
-  save_p(c,de,hl,cy);
+  tape_save_p(mem+hl, de);
 endinstr;
 
 default: tstates+=4;

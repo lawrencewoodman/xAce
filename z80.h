@@ -22,6 +22,7 @@
 #define Z80_save  5
 #define Z80_log   6
 
+extern unsigned char mem[65536];
 extern unsigned char *memptr[];
 extern int memattr[];
 extern int hsize,vsize;
@@ -31,8 +32,6 @@ extern unsigned int in(int h, int l);
 extern unsigned int out(int h,int l, int a);
 extern void do_interrupt(void);
 extern int mainloop();
-extern void save_p(int c, int _de, int _hl, int cf);
-extern void load_p(int c, int _de, int _hl, int cf);
 extern void fix_tstates(void);
 
 #define fetch(x) (memptr[(unsigned short)(x&0xe000)>>13][(x)&0x1fff])

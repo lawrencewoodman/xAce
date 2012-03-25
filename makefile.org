@@ -16,7 +16,7 @@ XROOT=/usr/X11R6
 #-----------------------------------------------------------------
 
 # this looks wrong, but *ops.c are actually #include'd by z80.c
-ACE_OBJS=xmain.o z80.o
+ACE_OBJS=xmain.o z80.o tape.o
 
 CFLAGS= -I$(XROOT)/include $(WOBDEF) $(SCALEDEF) -DXACE_VERSION='"0.4.1"'
 
@@ -26,6 +26,8 @@ xace: $(ACE_OBJS)
 	$(CC) -o xace $(ACE_OBJS) -L$(XROOT)/lib -lXext -lX11
 
 z80.o: edops.c cbops.c z80ops.c z80.h 
+
+tape.o: tape.c
 
 clean:
 	rm *.o *~

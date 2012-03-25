@@ -45,6 +45,7 @@
 #endif
 
 #include "z80.h"
+#include "tape.h"
 
 #define MAX_DISP_LEN 256
 
@@ -100,7 +101,6 @@ static int flipFlop;
 
 /* Prototypes */
 void loadrom(unsigned char *x);
-void patches(void);
 void startup(int *argc, char **argv);
 void check_events(void);
 void refresh(void);
@@ -116,6 +116,7 @@ sighandler(int a)
 void
 dontpanic(int signum)
 {
+  tape_detach();
   closedown();
   exit(1);
 }
@@ -131,6 +132,7 @@ main(int argc, char **argv)
   printf("xace: Jupiter ACE emulator v%s (by Edward Patel)\n", XACE_VERSION);
   printf("Keys:\n");
   printf("\tF1     - Delete Line\n");
+  printf("\tF3     - Attach a tape image\n");
   printf("\tF4     - Inverse Video\n");
   printf("\tF9     - Graphics\n");
   printf("\tF11    - Spool from a file\n");
@@ -139,7 +141,7 @@ main(int argc, char **argv)
   printf("\tCtrl-Q - Quit xAce\n");
       
   loadrom(mem);
-  patches();
+  tape_patches(mem);
   memset(mem+8192,0xff,57344);
   memset(chrmap_old,0xff,768);
   
@@ -197,19 +199,6 @@ loadrom(unsigned char *x)
   }
 }
 
-void
-patches(void)
-{
-  /* patch the ROM here */
-  mem[0x18a7]=0xed; /* for load_p */
-  mem[0x18a8]=0xfc;
-  mem[0x18a9]=0xc9;
-
-  mem[0x1820]=0xed; /* for save_p */
-  mem[0x1821]=0xfd;
-  mem[0x1822]=0xc9;
-}
-
 
 unsigned int
 in(int h, int l)
@@ -237,178 +226,6 @@ out(int h, int l, int a)
   return(0);
 }
 
-/* Returns a checksum calculated by XORing each value in data */
-char
-calc_checksum(char *data, int dataSize)
-{
-  int i;
-  char checksum = 0;
-
-  for (i = 0; i < dataSize; i++) {
-    checksum ^= data[i];
-  }
-
-  return checksum;
-}
-
-void
-save_p(int c, int _de, int _hl, int cf)
-{
-  char filename[32];
-  int i;
-  static int firstTime=1;
-  static FILE *fp;
-
-  /* printf("Save! c=%d de=%d hl=0x%04x cf=%d\n",c,_de,_hl,cf); */
-  /* printf("[%d]\n",mem[8961]); */
-
-  if (firstTime) {
-    i=0;
-    while (!isspace(mem[_hl+1+i])&&i<10) {
-      filename[i]=mem[_hl+1+i]; i++;
-    }
-    filename[i++]='.';
-    filename[i++]='t';
-    filename[i++]='a';
-    filename[i++]='p';
-    filename[i++]='\0';
-    printf("Saving to file '%s'\n",filename);
-    fp = fopen(filename,"wb");
-    if (!fp) {
-      printf("Couldn't open file\n");
-    } else {
-      fputc((_de+1)&0xff,fp);
-      fputc(((_de+1)>>8)&0xff,fp);
-      fwrite(&mem[_hl],1,_de,fp);
-      fputc(calc_checksum(&mem[_hl], _de), fp);
-      firstTime = 0;
-    }
-  } else {
-    fputc((_de+1)&0xff,fp);
-    fputc(((_de+1)>>8)&0xff,fp);
-    fwrite(&mem[_hl],1,_de,fp);
-    fputc(calc_checksum(&mem[_hl], _de), fp);
-    fclose(fp);
-    fp=NULL;
-    firstTime = 1;
-  }
-}
-
-
-unsigned char empty_bytes[799] = { /* a small screen       */
-  0x1a,0x00,0x20,0x6f,             /* will be loaded if    */
-  0x74,0x68,0x65,0x72,             /* wanted file can't be */
-  0x20,0x20,0x20,0x20,             /* opened */
-  0x20,0x00,0x03,0x00,
-  0x24,0x20,0x20,0x20,
-  0x20,0x20,0x20,0x20,
-  0x20,0x20,0x20,0x20,
-  0x01,0x03,0x43,0x6f,
-  0x75,0x6c,0x64,0x6e,
-  0x27,0x74,0x20,0x6c,
-  0x6f,0x61,0x64,0x20,
-  0x79,0x6f,0x75,0x72,
-  0x20,0x66,0x69,0x6c,
-  0x65,0x21,0x20,
-};
-
-
-unsigned char empty_dict[] = { /* a small forth program */
-  0x1a,0x00,0x00,0x6f,         /* will be loaded if     */
-  0x74,0x68,0x65,0x72,         /* wanted file can't be  */
-  0x20,0x20,0x20,0x20,         /* opened */
-  0x20,0x2a,0x00,0x51,
-  0x3c,0x58,0x3c,0x4c,
-  0x3c,0x4c,0x3c,0x4f,
-  0x3c,0x7b,0x3c,0x20,
-  0x2b,0x00,0x52,0x55,
-  0xce,0x27,0x00,0x49,
-  0x3c,0x03,0xc3,0x0e,
-  0x1d,0x0a,0x96,0x13,
-  0x18,0x00,0x43,0x6f,
-  0x75,0x6c,0x64,0x6e,
-  0x27,0x74,0x20,0x6c,
-  0x6f,0x61,0x64,0x20,
-  0x79,0x6f,0x75,0x72,
-  0x20,0x66,0x69,0x6c,
-  0x65,0x21,0xb6,0x04,
-  0xff,0x00
-};
-
-void
-load_p(int c, int _de, int _hl, int cf)
-{
-  char filename[32];
-  int i;
-  static unsigned char *empty_tape;
-  static int efp;
-  static int firstTime=1;
-  static FILE *fp;
-
-  /* printf("Load! c=%d de=%d hl=0x%04x cf=%d\n",c,_de,_hl,cf); */
-  /* printf("[%d]\n",mem[9985]); */
-
-  if (firstTime) {
-    i=0;
-    while (!isspace(mem[9985+1+i])&&i<10) {
-      filename[i]=mem[9985+1+i]; i++;
-    }
-    filename[i++]='.';
-    filename[i++]='t';
-    filename[i++]='a';
-    filename[i++]='p';
-    
-    if (mem[9985]) { /* dict or bytes load */
-      empty_tape = empty_bytes;
-    } else {
-      empty_tape = empty_dict;
-    }
-    filename[i++]='\0';
-    fp = fopen(filename,"rb");
-    if (!fp) {
-      printf("Couldn't open file '%s'\n",filename);
-      efp=0;
-      _de=empty_tape[efp++];
-      _de+=256*empty_tape[efp++];
-      memcpy(&mem[_hl],&empty_tape[efp],_de-1); /* -1 -> skip last byte */
-      for (i=0;i<_de;i++) /* get memory OK */
-        store(_hl+i,fetch(_hl+i));
-      efp+=_de;
-      for (i=0;i<10;i++)               /* let this file be it! */
-        mem[_hl+1+i]=mem[9985+1+i];
-      firstTime = 0;
-    } else {
-      printf("Reading from file '%s'\n",filename);
-      _de=fgetc(fp);
-      _de+=256*fgetc(fp);
-      fread(&mem[_hl],1,_de-1,fp); /* -1 -> skip last byte */
-      fgetc(fp); /* skip last byte */
-      for (i=0;i<_de;i++) /* get memory OK */
-        store(_hl+i,fetch(_hl+i));
-      for (i=0;i<10;i++)               /* let this file be it! */
-        mem[_hl+1+i]=mem[9985+1+i];
-      firstTime = 0;
-    }
-  } else {
-    if (fp) {
-      _de=fgetc(fp);
-      _de+=256*fgetc(fp);
-      fread(&mem[_hl],1,_de-1,fp); /* -1 -> skip last byte */
-      fgetc(fp); /* skip last byte */
-      for (i=0;i<_de;i++) /* get memory OK */
-        store(_hl+i,fetch(_hl+i));
-      fclose(fp);
-      fp=NULL;
-    } else {
-      _de=empty_tape[efp++];
-      _de+=256*empty_tape[efp++];
-      memcpy(&mem[_hl],&empty_tape[efp],_de-1); /* -1 -> skip last byte */
-      for (i=0;i<_de;i++) /* get memory OK */
-        store(_hl+i,fetch(_hl+i));
-    }
-    firstTime = 1;
-  }
-}
 
 void
 fix_tstates(void)
@@ -719,6 +536,7 @@ process_keypress(XKeyEvent *kev)
 {
   char buf[3];
   char spool_filename[257];
+  char tape_filename[257];
   KeySym ks;
 
   if (spoolFile && (ks=fgetc(spoolFile))) {
@@ -746,6 +564,15 @@ process_keypress(XKeyEvent *kev)
   case XK_Escape:  /* Jupiter Ace Break */
     keyports[7]&=0xfe;
     keyports[0]&=0xfe;
+    break;
+
+  case XK_F3:
+    printf("Enter tape image file:");
+    scanf("%256s",tape_filename);
+    if (tape_attach(tape_filename) == NULL)
+      fprintf(stderr, "Error: Couldn't open file: %s\n", tape_filename);
+    else
+      printf("Tape image attached.\n");
     break;
 
   case XK_F11:
