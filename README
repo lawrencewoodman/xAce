@@ -107,6 +107,10 @@ Loading/Saving External Files:
 	It is important to note that when you save, the rest of the
 	file is truncated.
 
+Spooling:
+	To spool text into xAce from an externel file, press 'F11'
+	and enter the name of the file that you want xAce to read.
+
 Software for the Jupiter Ace:
 	The Jupiter Ace Resource Site (http://www.jupiter-ace.co.uk) is
 	the best source for Ace	software.  Here you will find that most
