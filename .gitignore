@@ -1,8 +1,16 @@
 # Object files
 *.o
 
-# Executable
+# Executables
 xace
+tests/tape_test
 
 # Makefile
 Makefile
+
+# Tape files
+*.tap
+*.TAP
+
+# Vim Swap files
+*.swp
