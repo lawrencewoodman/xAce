@@ -122,6 +122,36 @@ dontpanic(int signum)
 }
 
 
+static void
+tape_observer(int tape_attached, int tape_pos,
+ const char tape_filename[TAPE_MAX_FILENAME_SIZE],
+ MessageType message_type, const char message[TAPE_MAX_MESSAGE_SIZE])
+{
+  switch (message_type) {
+    case NO_MESSAGE:
+      if (tape_attached)
+        printf("TAPE: %s Pos: %04d\n", tape_filename, tape_pos);
+      break;
+
+    case MESSAGE:
+      if (tape_attached)
+        printf("TAPE: %s Pos: %04d - %s\n", tape_filename, tape_pos, message);
+      else
+        printf("TAPE: empty tape Pos: %04d - %s\n", tape_pos, message);
+      break;
+
+    case ERROR:
+      if (tape_attached) {
+        fprintf(stderr, "TAPE: %s Pos: %04d - Error: %s\n",
+                tape_filename, tape_pos, message);
+      } else {
+        fprintf(stderr, "TAPE: empty tape Pos: %04d - Error: %s\n",
+                tape_pos, message);
+      }
+      break;
+  }
+}
+
 void
 main(int argc, char **argv)
 {
@@ -174,6 +204,7 @@ main(int argc, char **argv)
   itv.it_value.tv_usec=itv.it_interval.tv_usec;
   setitimer(ITIMER_REAL,&itv,NULL);
 
+  tape_add_observer(tape_observer);
   mainloop();
   
 }
@@ -513,6 +544,7 @@ startup(int *argc, char **argv)
   XMapRaised(display,borderwin);
   XMapRaised(display,mainwin);
   XFlush(display);
+
   refresh_screen=1;
 }
 
@@ -528,8 +560,6 @@ clear_keyboard(void)
   keyports[6]=0xff;
   keyports[7]=0xff;
 }
-
-
 
 int
 process_keypress(XKeyEvent *kev)
@@ -569,10 +599,7 @@ process_keypress(XKeyEvent *kev)
   case XK_F3:
     printf("Enter tape image file:");
     scanf("%256s",tape_filename);
-    if (tape_attach(tape_filename) == NULL)
-      fprintf(stderr, "Error: Couldn't open file: %s\n", tape_filename);
-    else
-      printf("Tape image attached.\n");
+    tape_attach(tape_filename);
     break;
 
   case XK_F11:
@@ -1471,6 +1498,7 @@ refresh(void)
 void
 closedown(void)
 {
+  tape_clear_observers();
 #ifdef MITSHM
   if(mitshm){
     XShmDetach(display,&xshminfo);

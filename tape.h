@@ -19,6 +19,32 @@
 #ifndef TAPE_H
 #define TAPE_H
 
+#define TAPE_MAX_FILENAME_SIZE 256
+#define TAPE_MAX_MESSAGE_SIZE 256
+#define TAPE_MAX_OBSERVERS 10
+
+typedef enum MessageType {
+  NO_MESSAGE,
+  MESSAGE,
+  ERROR,
+} MessageType;
+
+/**
+ * Observer for the status of the tape emulation
+ * tape_attached - True/False
+ * tape_pos - Position on the tape
+ * _tape_filename - Name of the attached tape file.  This is shared
+ *                  between all the observers notified, so don't overwrite.
+ * message_type - NO_MESSAGE, MESSAGE or ERROR
+ * message - The message to pass on
+ */
+typedef void (*TapeObserver)(int tape_attached, int tape_pos,
+  const char _tape_filename[TAPE_MAX_FILENAME_SIZE],
+  MessageType message_type,
+  const char message[TAPE_MAX_MESSAGE_SIZE]);
+
+void tape_clear_observers(void);
+void tape_add_observer(TapeObserver tape_observer);
 extern void tape_patches(char *mem);
 extern FILE* tape_attach(char *filename);
 extern void tape_detach();

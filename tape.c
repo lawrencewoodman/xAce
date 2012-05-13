@@ -27,6 +27,8 @@
 #include "z80.h"
 #include "tape.h"
 
+static void tape_notify_observers(MessageType message_type,
+  char message[TAPE_MAX_MESSAGE_SIZE]);
 static int tape_eof(void);
 static void tape_rewind_to_start(void);
 static void tape_attach_empty_tape(char load_type);
@@ -83,9 +85,26 @@ static unsigned char empty_dict[] = {
 };
 
 static FILE *tape_fp = NULL;
-static int empty_tape_fp = 0;
+static int empty_tape_pos = 0;
 static unsigned char *empty_tape;
+static char tape_filename[TAPE_MAX_FILENAME_SIZE+1] = "";
 static char requested_filename[11];  /* The file requested on the tape */
+
+static int observer_count = 0;
+static TapeObserver observers[TAPE_MAX_OBSERVERS] = {NULL};
+
+void
+tape_add_observer(TapeObserver tape_observer)
+{
+  if (observer_count < TAPE_MAX_OBSERVERS)
+    observers[observer_count++] = tape_observer;
+}
+
+void
+tape_clear_observers(void)
+{
+  observer_count = 0;
+}
 
 void
 tape_patches(char *mem)
@@ -104,13 +123,17 @@ FILE *
 tape_attach(char *filename)
 {
   tape_detach();
-  if ((tape_fp = fopen(filename, "rb+")) == NULL) {
-    if ((tape_fp = fopen(filename, "wb+")) == NULL) {
-      fprintf(stderr, "Error: Couldn't create file: %s\n", filename);
-      exit(1);
-    }
+
+  if ((tape_fp = fopen(filename, "rb+")) == NULL)
+    tape_fp = fopen(filename, "wb+");
+  else
+    tape_rewind_to_start();
+
+  if (tape_fp) {
+    strncpy(tape_filename, filename, TAPE_MAX_FILENAME_SIZE);
+    tape_notify_observers(MESSAGE, "Tape image attached.");
   } else {
-    fseek(tape_fp, 0, SEEK_SET);
+    tape_notify_observers(ERROR, "Couldn't create file.");
   }
 
   return tape_fp;
@@ -122,6 +145,7 @@ tape_detach(void)
   if (tape_fp != NULL) {
     fclose(tape_fp);
     tape_fp = NULL;
+    tape_notify_observers(MESSAGE, "Tape image detached.");
   }
 }
 
@@ -130,9 +154,10 @@ tape_load_p(char *mem, int block_dest_offset)
 {
   char found_filename[11];
   static int load_header = 1;
+  char message[TAPE_MAX_MESSAGE_SIZE] = "";
 
   if (tape_eof()) {
-    printf("End of tape reached.  Rewinding.\n");
+    tape_notify_observers(MESSAGE, "End of tape reached.  Rewinding.");
     tape_rewind_to_start();
     load_header = 1;
   }
@@ -140,20 +165,25 @@ tape_load_p(char *mem, int block_dest_offset)
   if (load_header) {
     tape_attach_empty_tape(mem[9985]);
     tape_extract_filename(requested_filename, mem+9985+1);
-    printf("Searching for file: %s\n", requested_filename);
+    sprintf(message, "Searching for file: %s", requested_filename);
+    tape_notify_observers(MESSAGE, message);
 
     tape_load_block(mem, block_dest_offset);
     tape_extract_filename(found_filename, mem+block_dest_offset+1);
     if (strcmp(requested_filename, found_filename) != 0) {
-      printf("Skipping file: %s\n", found_filename);
+      sprintf(message, "Skipping file: %s", found_filename);
       tape_skip_block();
     } else {
+      sprintf(message, "Found file: %s", found_filename);
       load_header = 0;
     }
   } else {
     tape_load_block(mem, block_dest_offset);
+    sprintf(message, "Load complete.");
     load_header = 1;
   }
+
+  tape_notify_observers(MESSAGE, message);
 }
 
 void
@@ -161,20 +191,55 @@ tape_save_p(char *mem, int block_size)
 {
   char filename[32];
   static int save_header = 1;
+  char message[TAPE_MAX_MESSAGE_SIZE] = "";
 
   if (!tape_fp) {
-    if (!save_header)
-      fprintf(stderr, "Error: No tape file attached.\n");
+    if (save_header) {
+      tape_notify_observers(MESSAGE, "No tape file attached.");
+      save_header = 0;
+    }
     return;
   }
 
   if (save_header) {
     tape_extract_filename(filename, mem+1);
-    printf("Saving to file '%s'\n", filename);
+    sprintf(message, "Saving to file: %s", filename);
     tape_truncate();
+  } else {
+    sprintf(message, "Save complete.");
   }
   save_header = !save_header;
   tape_save_block(mem, block_size);
+  tape_notify_observers(MESSAGE, message);
+}
+
+static void
+tape_notify_observers(MessageType message_type,
+  char message[TAPE_MAX_MESSAGE_SIZE])
+{
+  int i;
+  int tape_attached;
+  int tape_pos;
+
+  /* Copies of the filename and message to mitigate risk of internal
+   * representation being overwritten by a badly behaved observer */
+  char _tape_filename[TAPE_MAX_FILENAME_SIZE];
+  char _message[TAPE_MAX_MESSAGE_SIZE];
+
+  tape_attached = !!tape_fp;
+  if (tape_fp) {
+    tape_pos = ftell(tape_fp);
+    strncpy(_tape_filename, tape_filename, TAPE_MAX_FILENAME_SIZE);
+  } else {
+    tape_pos = empty_tape_pos;
+    _tape_filename[0] = 0;
+  }
+
+  strncpy(_message, message, TAPE_MAX_MESSAGE_SIZE);
+  for (i = 0; i < observer_count; i++) {
+    observers[i](tape_attached, tape_pos, _tape_filename,
+      message_type, _message);
+  }
 }
 
 /* load_type - If 0 indicates dictionary, else bytes */
@@ -186,13 +251,13 @@ tape_attach_empty_tape(char load_type)
   } else {
     empty_tape = empty_bytes;
   }
-  empty_tape_fp = 0;
+  empty_tape_pos = 0;
 }
 
 static int
 tape_eof(void)
 {
-  return ((tape_fp && feof(tape_fp)) || (!tape_fp && empty_tape_fp > 28));
+  return ((tape_fp && feof(tape_fp)) || (!tape_fp && empty_tape_pos > 28));
 }
 
 static void
@@ -201,7 +266,7 @@ tape_rewind_to_start(void)
   if (tape_fp)
     fseek(tape_fp, 0, SEEK_SET);
   else
-    empty_tape_fp = 0;
+    empty_tape_pos = 0;
 }
 
 /**
@@ -223,10 +288,10 @@ tape_load_empty_tape_block(char *mem, int block_dest_offset)
 {
   int block_size;
 
-  block_size = empty_tape[empty_tape_fp++];
-  block_size += empty_tape[empty_tape_fp++] << 8;
-  memcpy(mem+block_dest_offset, &empty_tape[empty_tape_fp], block_size);
-  empty_tape_fp += block_size;
+  block_size = empty_tape[empty_tape_pos++];
+  block_size += empty_tape[empty_tape_pos++] << 8;
+  memcpy(mem+block_dest_offset, &empty_tape[empty_tape_pos], block_size);
+  empty_tape_pos += block_size;
 }
 
 static void
@@ -257,9 +322,9 @@ tape_skip_block(void)
     block_size += fgetc(tape_fp) << 8;
     fseek(tape_fp, block_size, SEEK_CUR);
   } else {
-    block_size = empty_tape[empty_tape_fp++];
-    block_size += empty_tape[empty_tape_fp++] << 8;
-    empty_tape_fp += block_size;
+    block_size = empty_tape[empty_tape_pos++];
+    block_size += empty_tape[empty_tape_pos++] << 8;
+    empty_tape_pos += block_size;
   }
 }
 
@@ -277,9 +342,7 @@ static void
 tape_truncate(void)
 {
   if (ftruncate(fileno(tape_fp), ftell(tape_fp)) != 0) {
-    fprintf(stderr, "Error: Couldn't truncate file.\n");
-    tape_detach();
-    exit(1);
+    tape_notify_observers(ERROR, "Couldn't truncate file.");
   }
 }
 
