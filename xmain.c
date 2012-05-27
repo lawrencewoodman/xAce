@@ -85,7 +85,6 @@ int topspeed=0,lowref=0;
 
 int memattr[8]={0,1,1,1,1,1,1,1}; /* 8K RAM Banks */
 
-int screen_dirty;
 int hsize=256*SCALE,vsize=192*SCALE;
 volatile int interrupted=0;
 int scrn_freq=2;
@@ -1374,7 +1373,6 @@ refresh(void)
   int j,k,m;
   unsigned char *ptr,*cptr;
   int x,y,b,c,d,inv,mask;
-  int pasteol;
   int xmin,ymin,xmax,ymax;
   int ofs;
   int bytesPerPixel;
@@ -1423,7 +1421,6 @@ refresh(void)
   ofs=0;
   for(y=0;y<24;y++)
   {
-    pasteol=0;
     for(x=0;x<32;x++,ptr++,ofs++)
     {
       c=*ptr;
