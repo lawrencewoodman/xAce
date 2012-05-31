@@ -49,7 +49,7 @@
 
 #define MAX_DISP_LEN 256
 
-#include "xace.icon"
+#include "xace_icon.h"
 
 #if SCALE>1
 static unsigned long scaleup[256]; /* to hold table of scaled up bytes,

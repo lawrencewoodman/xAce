@@ -5,12 +5,19 @@
 xace
 tests/tape_test
 
-# Makefile
+# Makefiles
 Makefile
 
 # Tape files
-*.tap
-*.TAP
+/*.tap
+/*.TAP
 
 # Vim Swap files
 *.swp
+
+# CMake files
+CMakeFiles
+CMakeCache.txt
+*.cmake
+/Testing
+/install_manifest.txt

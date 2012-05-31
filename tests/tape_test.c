@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../tape.h"
+#include "tape.h"
 
 /* Generate a block of data to save and compare */
 static void

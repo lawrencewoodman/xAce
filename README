@@ -45,27 +45,18 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
 Files:
-	README              - this file
+	README              - This file
 	CHANGELOG.md        - Lists the changes between versions
-	COPYING             - the GNU GENERAL PUBLIC LICENSE
-	forth.txt           - crash course in Forth
+	COPYING             - The GNU GENERAL PUBLIC LICENSE
+	forth.txt           - Crash course in Forth
 	boldcomp.email.txt  - Email from Boldfield Computing shedding light on
 	                      the legal position of distributing the rom with
 	                      the emulator
 	.gitignore          - Tells Git which files to ignore
-	Imakefile           - xmkmf file for creating a system dependent
-	                      Makefile
-	makefile.org        - a short makefile for building xace
-	ace.rom             - the rom
-	cbops.c             - Z80 0xCB operands handling
-	edops.c             - Z80 0xED operands handling
-	tape.c              - Cassette emulation
-	tape.h              - Header for cassette emulation
-	xace.icon           - an icon
-	xmain.c             - the X engine, main entry and ACE specific
-	z80.c               - Z80 Emulation
-	z80.h               - some macros for Z80 memory access
-	z80ops.c            - Z80 operands handling
+	CMakeLists.txt      - CMake file for creating system dependent
+	                      Makefiles
+	ace.rom             - The Jupiter Ace rom image
+	src/                - Contains the source code for xAce
 	tests/              - Contains testing routines
 
 Requirements:
@@ -77,20 +68,26 @@ Requirements:
 		libx11   (Often packaged as libx11-dev)
 		libxext  (Often packaged as libxext-dev)
 
-	To ease compilation it would be worth having 'xmkmf' on your system
-	this normally resides in the following package:
-		xutils-dev
+	In addition the build process uses 'CMake', which you will have to have
+	installed on your system.
 
-Compilation:
-	If you have 'xmkmf'? Run it first and then 'make' xace.
+Compilation and Installation:
+	From the root directory of the repository, i.e. The directory this file
+	is in.  Run 'cmake' to create the Makefiles:
+		cmake .
 
-	If you don't have 'xmkmf' then try just to run 'make' with
-	'-f makefile.org' and hope for the best!
-	I haven't done any bigger efforts to make it compile for a
-	lot of platforms. But its short and should be easy to
-	adapt for different platforms.
+	Now run 'make' from the same directory:
+		make
 
-	If it compiles try running './xace' and you're off. (I hope)
+	The binary executable will now be in src/, to install it to a sensible
+	location such as '/usr/local/bin' run the following as root:
+		make install
+
+	For the moment xAce must be run from a terminal window and from the
+	same directory in which the rom image is to be found.  So from the
+	current directory run:
+		xace
+
 
 The ROM?
 	The distribution includes a copy of the Jupiter ACE ROM image. 
@@ -108,7 +105,7 @@ Loading/Saving External Files:
 	file is truncated.
 
 Spooling:
-	To spool text into xAce from an externel file, press 'F11'
+	To spool text into xAce from an external file, press 'F11'
 	and enter the name of the file that you want xAce to read.
 
 Software for the Jupiter Ace:
