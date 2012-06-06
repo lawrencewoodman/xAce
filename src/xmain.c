@@ -34,16 +34,6 @@
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
 
-#ifdef MITSHM
-#include <sys/ipc.h>
-#include <sys/shm.h>
-#include <X11/extensions/XShm.h>
-#endif
-
-#ifdef HAS_UNAME
-#include <sys/utsname.h>
-#endif
-
 #include "z80.h"
 #include "tape.h"
 
@@ -68,7 +58,7 @@ unsigned char keyports[8] = {
 };
 
 #define BORDER_WIDTH  (20*SCALE)
-int rrshm=2,rrnoshm=4,mitshm=1;
+int rrnoshm=4;
 unsigned char mem[65536];
 unsigned char *memptr[8] = {
   mem,
@@ -81,7 +71,6 @@ unsigned char *memptr[8] = {
   mem+0xe000
 };
 unsigned long tstates=0,tsmax=62500;
-int topspeed=0,lowref=0;
 
 int memattr[8]={0,1,1,1,1,1,1,1}; /* 8K RAM Banks */
 
@@ -283,12 +272,6 @@ do_interrupt(void)
 }
 
 /* the remainder of xmain.c is based on xz80's xspectrum.c. */
-
-#ifdef SunKludge
-char *shmat();
-char *getenv();
-#endif
-
 static Display *display;
 static Screen *scrptr;
 static int screen;
@@ -301,36 +284,8 @@ static XImage *ximage;
 static unsigned char *image;
 static int linelen;
 static int black,white;
-#ifdef MITSHM
-static XShmSegmentInfo xshminfo;
-#endif
 static int invert=0;
 static int borderchange=1;
-
-static int is_local_server(name)
-char *name;
-{
-#ifdef HAS_UNAME
-  struct utsname un;
-#else
-  char sysname[MAX_DISP_LEN];
-#endif
-
-  if(name[0]==':')return 1;
-  if(!strncmp(name,"unix",4))return 1;
-  if(!strncmp(name,"localhost",9))return 1;
-
-#ifdef HAS_UNAME
-  uname(&un);
-  if(!strncmp(name,un.sysname,strlen(un.sysname)))return 1;
-  if(!strncmp(name,un.nodename,strlen(un.nodename)))return 1;
-#else
-  gethostname(sysname,MAX_DISP_LEN);
-  if(!strncmp(name,sysname,strlen(sysname)))return 1;
-#endif
-  return 0;
-}
-
 
 static Display *
 open_display(int *argc, char **argv)
@@ -350,81 +305,30 @@ open_display(int *argc, char **argv)
     exit(1);
   }
 
-#ifdef MITSHM   
-  mitshm=1;
-#else
-  mitshm=0;
-#endif
-   
-  /* XXX deal with args here */
-
-  if(mitshm && !is_local_server(dispname)){
-    fputs("Disabling MIT-SHM on remote X server\n",stderr);
-    mitshm=0;
-  }
   return display;
 }
 
 
 static int image_init()
 {
-#ifdef MITSHM
-  if(mitshm){
-    ximage=XShmCreateImage(display,DefaultVisual(display,screen),
-           DefaultDepth(display,screen),ZPixmap,NULL,&xshminfo,
-           hsize,vsize);
-    if(!ximage){
-      fputs("Couldn't create X image\n",stderr);
-      return 1;
-    }
-    xshminfo.shmid=shmget(IPC_PRIVATE,
-             ximage->bytes_per_line*(ximage->height+1),IPC_CREAT|0777);
-    if(xshminfo.shmid == -1){
-      perror("Couldn't perform shmget");
-      return 1;
-    }
-    xshminfo.shmaddr=ximage->data=shmat(xshminfo.shmid,0,0);
-    if(!xshminfo.shmaddr){
-      perror("Couldn't perform shmat");
-      return 1;
-    }
-    xshminfo.readOnly=0;
-    if(!XShmAttach(display,&xshminfo)){
-      perror("Couldn't perform XShmAttach");
-      return 1;
-    }
-    scrn_freq=rrshm;
-  } else
-#endif
-  {
-    ximage=XCreateImage(display,DefaultVisual(display,screen),
-           DefaultDepth(display,screen),ZPixmap,0,NULL,hsize,vsize,
-           8,0);
-    if(!ximage){
-      perror("XCreateImage failed");
-      return 1;
-    }
-    ximage->data=malloc(ximage->bytes_per_line*(ximage->height+1));
-    if(!ximage->data){
-      perror("Couldn't get memory for XImage data");
-      return 1;
-    }
-    scrn_freq=rrnoshm;
+  ximage=XCreateImage(display,DefaultVisual(display,screen),
+         DefaultDepth(display,screen),ZPixmap,0,NULL,hsize,vsize,
+         8,0);
+  if(!ximage){
+    perror("XCreateImage failed");
+    return 1;
   }
+  ximage->data=malloc(ximage->bytes_per_line*(ximage->height+1));
+  if(!ximage->data){
+    perror("Couldn't get memory for XImage data");
+    return 1;
+  }
+  scrn_freq=rrnoshm;
   linelen=ximage->bytes_per_line/SCALE;
    
   /* The following represent 4, 8, 16 or 32 bpp repectively */
   if(linelen!=32 && linelen!=256 && linelen!=512 && linelen!=1024)
     fprintf(stderr,"Line length=%d; expect strange results!\n",linelen);
-#if 0
-  if(linelen==32 &&
-        (BitmapBitOrder(display)!=MSBFirst || ImageByteOrder(display)!=MSBFirst))
-    fprintf(stderr,"BitmapBitOrder=%s and ImageByteOrder=%s.\n",
-         BitmapBitOrder(display)==MSBFirst?"MSBFirst":"LSBFirst",
-         ImageByteOrder(display)==MSBFirst?"MSBFirst":"LSBFirst"),
-    fputs("If the display is mixed up, please mail me these values\n",stderr),
-    fputs("and describe the display as accurately as possible.\n",stderr);
-#endif
    
   image=ximage->data;
   return 0;
@@ -519,13 +423,8 @@ startup(int *argc, char **argv)
   XCopyGC(display,DefaultGC(display,screen),~0,bggc);
   XSetGraphicsExposures(display,bggc,0);
   cmap=DefaultColormap(display,screen);
-  if(image_init()){
-    if(mitshm){
-      fputs("Failed to create X image - trying again with mitshm off\n",stderr);
-      mitshm=0;
-      if(image_init())exit(1);
-    }
-    else exit(1);
+  if(image_init()) {
+    exit(1);
   }
 
 #if SCALE>1
@@ -1476,16 +1375,9 @@ refresh(void)
    
   if(xmax>=xmin && ymax>=ymin)
   {
-#ifdef MITSHM
-    if(mitshm)
-      XShmPutImage(display,mainwin,maingc,ximage,
-             xmin*8*SCALE,ymin*8*SCALE,xmin*8*SCALE,ymin*8*SCALE,
-             (xmax-xmin+1)*8*SCALE,(ymax-ymin+1)*8*SCALE,0);
-    else
-#endif
-      XPutImage(display,mainwin,maingc,ximage,
-            xmin*8*SCALE,ymin*8*SCALE,xmin*8*SCALE,ymin*8*SCALE,
-            (xmax-xmin+1)*8*SCALE,(ymax-ymin+1)*8*SCALE);
+    XPutImage(display,mainwin,maingc,ximage,
+              xmin*8*SCALE,ymin*8*SCALE,xmin*8*SCALE,ymin*8*SCALE,
+              (xmax-xmin+1)*8*SCALE,(ymax-ymin+1)*8*SCALE);
   }
    
   XFlush(display);
@@ -1496,16 +1388,7 @@ void
 closedown(void)
 {
   tape_clear_observers();
-#ifdef MITSHM
-  if(mitshm){
-    XShmDetach(display,&xshminfo);
-    XDestroyImage(ximage);
-   shmdt(xshminfo.shmaddr);
-    shmctl(xshminfo.shmid,IPC_RMID,0);
-  }
-#else
   free(ximage->data);
-#endif
   XAutoRepeatOn(display);
   XCloseDisplay(display);
 }
