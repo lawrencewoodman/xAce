@@ -107,6 +107,8 @@ Loading/Saving External Files:
 Spooling:
 	To spool text into xAce from an external file, press 'F11'
 	and enter the name of the file that you want xAce to read.
+	Alternatively you can use the -s command line switch e.g.
+		./xace -s spool.file
 
 Software for the Jupiter Ace:
 	The Jupiter Ace Resource Site (http://www.jupiter-ace.co.uk) is

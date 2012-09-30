@@ -141,6 +141,37 @@ tape_observer(int tape_attached, int tape_pos,
 }
 
 void
+handle_cli_args(int argc, char **argv)
+{
+  int arg_pos = 0;
+  char *spool_filename;
+
+  while (arg_pos < argc) {
+    if (strcmp("-f", argv[arg_pos]) == 0) {
+      if (++arg_pos < argc) {
+        scrn_freq=atoi(argv[arg_pos]);
+        if(scrn_freq<1) scrn_freq=1;
+        if(scrn_freq>50) scrn_freq=50;
+      } else {
+        fprintf(stderr, "Error: Missing frequency for -f arg\n");
+      }
+    }
+    else if (strcmp("-s", argv[arg_pos]) == 0) {
+      if (++arg_pos < argc) {
+        spool_filename = argv[arg_pos];
+        spoolFile=fopen(spool_filename, "rt");
+        if (!spoolFile)
+          fprintf(stderr, "Error: Couldn't open file: %s\n", spool_filename);
+        flipFlop=2;
+      } else {
+        fprintf(stderr, "Error: Missing filename for -s arg\n");
+      }
+    }
+    arg_pos++;
+  }
+}
+
+void
 main(int argc, char **argv)
 {
   struct sigaction sa;
@@ -164,10 +195,7 @@ main(int argc, char **argv)
   memset(chrmap_old,0xff,768);
   
   startup(&argc,argv);
-  
-  if(argc==2) scrn_freq=atoi(argv[1]);
-  if(scrn_freq<1) scrn_freq=1;
-  if(scrn_freq>50) scrn_freq=50;
+  handle_cli_args(argc, argv);
 
   memset(&sa,0,sizeof(sa));
 
@@ -1276,7 +1304,7 @@ refresh(void)
   int ofs;
   int bytesPerPixel;
   int imageIndex;
-     
+
   if (spoolFile) {
     if (flipFlop==1) {
       process_keypress(NULL);
