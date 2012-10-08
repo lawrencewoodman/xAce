@@ -20,11 +20,12 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
+#include <limits.h>
+#include <fcntl.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <signal.h>
-#include <fcntl.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <time.h>
@@ -70,6 +71,7 @@ unsigned char *memptr[8] = {
   mem+0xc000,
   mem+0xe000
 };
+
 unsigned long tstates=0,tsmax=62500;
 
 int memattr[8]={0,1,1,1,1,1,1,1}; /* 8K RAM Banks */
@@ -88,6 +90,7 @@ static FILE *spoolFile=NULL;
 static int flipFlop;
 
 /* Prototypes */
+void clear_keyboard(void);
 void loadrom(unsigned char *x);
 void startup(int *argc, char **argv);
 void check_events(void);
@@ -107,6 +110,16 @@ dontpanic(int signum)
   tape_detach();
   closedown();
   exit(1);
+}
+
+static void normal_speed(void) {
+  scrn_freq = 4;
+  tsmax = 62500;
+}
+
+void fast_speed(void) {
+  scrn_freq = 2;
+  tsmax = ULONG_MAX;
 }
 
 
@@ -144,19 +157,16 @@ void
 handle_cli_args(int argc, char **argv)
 {
   int arg_pos = 0;
+  char *cli_switch;
   char *spool_filename;
 
   while (arg_pos < argc) {
-    if (strcmp("-f", argv[arg_pos]) == 0) {
-      if (++arg_pos < argc) {
-        scrn_freq=atoi(argv[arg_pos]);
-        if(scrn_freq<1) scrn_freq=1;
-        if(scrn_freq>50) scrn_freq=50;
-      } else {
-        fprintf(stderr, "Error: Missing frequency for -f arg\n");
+    cli_switch = argv[arg_pos];
+    if (strcasecmp("-s", cli_switch) == 0) {
+      if (strcmp("-S", cli_switch) == 0) {
+        fast_speed();
       }
-    }
-    else if (strcmp("-s", argv[arg_pos]) == 0) {
+
       if (++arg_pos < argc) {
         spool_filename = argv[arg_pos];
         spoolFile=fopen(spool_filename, "rt");
@@ -164,7 +174,7 @@ handle_cli_args(int argc, char **argv)
           fprintf(stderr, "Error: Couldn't open file: %s\n", spool_filename);
         flipFlop=2;
       } else {
-        fprintf(stderr, "Error: Missing filename for -s arg\n");
+        fprintf(stderr, "Error: Missing filename for %s arg\n", cli_switch);
       }
     }
     arg_pos++;
@@ -282,14 +292,32 @@ fix_tstates(void)
 }
 
 void
+read_from_spool_file(void)
+{
+  if (spoolFile) {
+    if (flipFlop==1) {
+      process_keypress(NULL);
+    }
+    if (flipFlop==3) {
+      flipFlop=0;
+      clear_keyboard();
+    }
+    flipFlop++;
+  }
+}
+
+void
 do_interrupt(void)
 {
   static int count=0;
 
   /* only do refresh() every 1/Nth */
   count++;
-  if(count>=scrn_freq)
-    count=0,refresh();
+  if (count >= scrn_freq) {
+    count=0;
+    read_from_spool_file();
+    refresh();
+  }
 
   check_events();
 
@@ -499,6 +527,7 @@ process_keypress(XKeyEvent *kev)
     if (ks==EOF) {
       fclose(spoolFile);
       spoolFile=NULL;
+      normal_speed();
       return 0;
     }
   } else {
@@ -509,7 +538,7 @@ process_keypress(XKeyEvent *kev)
 
   case XK_q:
     /* If Ctrl-q then Quit xAce */
-    if (kev->state & ControlMask) {
+    if (spoolFile == NULL && kev->state & ControlMask) {
       dontpanic(SIGQUIT);
       /* doesn't return */
     } else {
@@ -532,9 +561,11 @@ process_keypress(XKeyEvent *kev)
     printf("Enter spool file:");
     scanf("%256s",spool_filename);
     spoolFile=fopen(spool_filename, "rt");
-    if (!spoolFile)
+    if (spoolFile) {
+      flipFlop=2;
+    } {
       fprintf(stderr, "Error: Couldn't open file: %s\n", spool_filename);
-    flipFlop=2;
+    }
     break;
 
   case XK_F12:
@@ -1264,7 +1295,9 @@ check_events(void)
         XMoveWindow(display,mainwin,(conf_ev->width-hsize)/2,
                     (conf_ev->height-vsize)/2);
         break;
-      case MapNotify: case UnmapNotify: case ReparentNotify:
+      case MapNotify:
+      case UnmapNotify:
+      case ReparentNotify:
         break;
       case EnterNotify:
         cev=(XCrossingEvent *)&xev;
@@ -1276,9 +1309,11 @@ check_events(void)
         if(cev->detail!=NotifyInferior)
           XAutoRepeatOn(display),XFlush(display);
         break;
-      case KeyPress: process_keypress((XKeyEvent *)&xev);
+      case KeyPress:
+        process_keypress((XKeyEvent *)&xev);
         break;
-      case KeyRelease: process_keyrelease((XKeyEvent *)&xev);
+      case KeyRelease:
+        process_keyrelease((XKeyEvent *)&xev);
         break;
       default:
         fprintf(stderr,"unhandled X event, type %d\n",xev.type);
@@ -1304,17 +1339,6 @@ refresh(void)
   int ofs;
   int bytesPerPixel;
   int imageIndex;
-
-  if (spoolFile) {
-    if (flipFlop==1) {
-      process_keypress(NULL);
-    }
-    if (flipFlop==3) {
-      flipFlop=0;
-      clear_keyboard();
-    }
-    flipFlop++;
-  }
 
   if(borderchange>0)
   {
@@ -1343,7 +1367,6 @@ refresh(void)
   xmin=31; ymin=23; xmax=0; ymax=0;
    
   bytesPerPixel = linelen / 256;
-   
    
   ofs=0;
   for(y=0;y<24;y++)
