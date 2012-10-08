@@ -23,28 +23,28 @@
 
 #define parity(a) (partable[a])
 
-unsigned char partable[256]={
-      4, 0, 0, 4, 0, 4, 4, 0, 0, 4, 4, 0, 4, 0, 0, 4,
-      0, 4, 4, 0, 4, 0, 0, 4, 4, 0, 0, 4, 0, 4, 4, 0,
-      0, 4, 4, 0, 4, 0, 0, 4, 4, 0, 0, 4, 0, 4, 4, 0,
-      4, 0, 0, 4, 0, 4, 4, 0, 0, 4, 4, 0, 4, 0, 0, 4,
-      0, 4, 4, 0, 4, 0, 0, 4, 4, 0, 0, 4, 0, 4, 4, 0,
-      4, 0, 0, 4, 0, 4, 4, 0, 0, 4, 4, 0, 4, 0, 0, 4,
-      4, 0, 0, 4, 0, 4, 4, 0, 0, 4, 4, 0, 4, 0, 0, 4,
-      0, 4, 4, 0, 4, 0, 0, 4, 4, 0, 0, 4, 0, 4, 4, 0,
-      0, 4, 4, 0, 4, 0, 0, 4, 4, 0, 0, 4, 0, 4, 4, 0,
-      4, 0, 0, 4, 0, 4, 4, 0, 0, 4, 4, 0, 4, 0, 0, 4,
-      4, 0, 0, 4, 0, 4, 4, 0, 0, 4, 4, 0, 4, 0, 0, 4,
-      0, 4, 4, 0, 4, 0, 0, 4, 4, 0, 0, 4, 0, 4, 4, 0,
-      4, 0, 0, 4, 0, 4, 4, 0, 0, 4, 4, 0, 4, 0, 0, 4,
-      0, 4, 4, 0, 4, 0, 0, 4, 4, 0, 0, 4, 0, 4, 4, 0,
-      0, 4, 4, 0, 4, 0, 0, 4, 4, 0, 0, 4, 0, 4, 4, 0,
-      4, 0, 0, 4, 0, 4, 4, 0, 0, 4, 4, 0, 4, 0, 0, 4
-   };
+unsigned char partable[256] = {
+  4, 0, 0, 4, 0, 4, 4, 0, 0, 4, 4, 0, 4, 0, 0, 4,
+  0, 4, 4, 0, 4, 0, 0, 4, 4, 0, 0, 4, 0, 4, 4, 0,
+  0, 4, 4, 0, 4, 0, 0, 4, 4, 0, 0, 4, 0, 4, 4, 0,
+  4, 0, 0, 4, 0, 4, 4, 0, 0, 4, 4, 0, 4, 0, 0, 4,
+  0, 4, 4, 0, 4, 0, 0, 4, 4, 0, 0, 4, 0, 4, 4, 0,
+  4, 0, 0, 4, 0, 4, 4, 0, 0, 4, 4, 0, 4, 0, 0, 4,
+  4, 0, 0, 4, 0, 4, 4, 0, 0, 4, 4, 0, 4, 0, 0, 4,
+  0, 4, 4, 0, 4, 0, 0, 4, 4, 0, 0, 4, 0, 4, 4, 0,
+  0, 4, 4, 0, 4, 0, 0, 4, 4, 0, 0, 4, 0, 4, 4, 0,
+  4, 0, 0, 4, 0, 4, 4, 0, 0, 4, 4, 0, 4, 0, 0, 4,
+  4, 0, 0, 4, 0, 4, 4, 0, 0, 4, 4, 0, 4, 0, 0, 4,
+  0, 4, 4, 0, 4, 0, 0, 4, 4, 0, 0, 4, 0, 4, 4, 0,
+  4, 0, 0, 4, 0, 4, 4, 0, 0, 4, 4, 0, 4, 0, 0, 4,
+  0, 4, 4, 0, 4, 0, 0, 4, 4, 0, 0, 4, 0, 4, 4, 0,
+  0, 4, 4, 0, 4, 0, 0, 4, 4, 0, 0, 4, 0, 4, 4, 0,
+  4, 0, 0, 4, 0, 4, 4, 0, 0, 4, 4, 0, 4, 0, 0, 4
+};
 
 
-mainloop()
-{
+void
+mainloop(void) {
   unsigned char a, f, b, c, d, e, h, l;
   unsigned char r, a1, f1, b1, c1, d1, e1, h1, l1, i, iff1, iff2, im;
   unsigned short pc;
@@ -59,38 +59,38 @@ mainloop()
   ixoriy=new_ixoriy=0;
   ix=iy=sp=pc=0;
   tstates=radjust=0;
-  while(1)
-    {
-      ixoriy=new_ixoriy;
-      new_ixoriy=0;
-      intsample=1;
-      op=fetch(pc);
-      pc++;
-      radjust++;
-      switch(op)
-	{
-#include "z80ops.c"
-	}
-      if(tstates>tsmax)
-	fix_tstates();
-      if(interrupted&&intsample)
-	{
-	  if (iff1) {
-	    do_interrupt();
-	    push2(pc);
-	    pc=0x38;
-	  }
-	  if(interrupted==2)
-	    {
-	      /* actually a kludge to let us do a reset */
-	      a=f=b=c=d=e=h=l=a1=f1=b1=c1=d1=e1=h1=l1=i=r=iff1=iff2=im=0;
-	      ixoriy=new_ixoriy=0;
-	      ix=iy=sp=pc=0;
-	      tstates=radjust=0;
-	    }
-	  interrupted=0;
-	}
+  while(1) {
+    ixoriy=new_ixoriy;
+    new_ixoriy=0;
+    intsample=1;
+    op=fetch(pc);
+    pc++;
+    radjust++;
+
+    switch(op) {
+      #include "z80ops.c"
     }
+
+    if(tstates>tsmax)
+      fix_tstates();
+
+    if(interrupted&&intsample) {
+      if (iff1) {
+        do_interrupt();
+        push2(pc);
+        pc=0x38;
+      }
+
+      if(interrupted==2) {
+        /* actually a kludge to let us do a reset */
+        a=f=b=c=d=e=h=l=a1=f1=b1=c1=d1=e1=h1=l1=i=r=iff1=iff2=im=0;
+        ixoriy=new_ixoriy=0;
+        ix=iy=sp=pc=0;
+        tstates=radjust=0;
+      }
+      interrupted=0;
+    }
+  }
 }
 
 
