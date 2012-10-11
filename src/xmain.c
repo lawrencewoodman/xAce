@@ -112,12 +112,14 @@ dontpanic(int signum)
   exit(1);
 }
 
-static void normal_speed(void) {
+static void
+normal_speed(void) {
   scrn_freq = 4;
   tsmax = 62500;
 }
 
-void fast_speed(void) {
+void
+fast_speed(void) {
   scrn_freq = 2;
   tsmax = ULONG_MAX;
 }
@@ -125,8 +127,8 @@ void fast_speed(void) {
 
 static void
 tape_observer(int tape_attached, int tape_pos,
- const char tape_filename[TAPE_MAX_FILENAME_SIZE],
- MessageType message_type, const char message[TAPE_MAX_MESSAGE_SIZE])
+  const char tape_filename[TAPE_MAX_FILENAME_SIZE],
+  MessageType message_type, const char message[TAPE_MAX_MESSAGE_SIZE])
 {
   switch (message_type) {
     case NO_MESSAGE:
@@ -1429,9 +1431,9 @@ refresh(void)
     XPutImage(display,mainwin,maingc,ximage,
               xmin*8*SCALE,ymin*8*SCALE,xmin*8*SCALE,ymin*8*SCALE,
               (xmax-xmin+1)*8*SCALE,(ymax-ymin+1)*8*SCALE);
+    XFlush(display);
   }
    
-  XFlush(display);
   refresh_screen=0;
 }
 
