@@ -1,6 +1,6 @@
 /* xace, an X-based Jupiter ACE emulator (based on xz81)
  *
- * Copyright (C) 1994 Ian Collier. 
+ * Copyright (C) 1994 Ian Collier.
  * xz81 changes (C) 1995-6 Russell Marks.
  * xace changes (C) 1997 Edward Patel.
  * xace changes (C) 2010 Lawrence Woodman.
@@ -113,13 +113,15 @@ dontpanic(int signum)
 }
 
 static void
-normal_speed(void) {
+normal_speed(void)
+{
   scrn_freq = 4;
   tsmax = 62500;
 }
 
 void
-fast_speed(void) {
+fast_speed(void)
+{
   scrn_freq = 2;
   tsmax = ULONG_MAX;
 }
@@ -189,7 +191,7 @@ main(int argc, char **argv)
   struct sigaction sa;
   struct itimerval itv;
   int tmp=1000/50;  /* 50 ints/sec */
-  
+
   printf("xace: Jupiter ACE emulator v%s (by Edward Patel)\n", XACE_VERSION);
   printf("Keys:\n");
   printf("\tF1     - Delete Line\n");
@@ -200,12 +202,12 @@ main(int argc, char **argv)
   printf("\tF12    - Reset\n");
   printf("\tEsc    - Break\n");
   printf("\tCtrl-Q - Quit xAce\n");
-      
+
   loadrom(mem);
   tape_patches(mem);
   memset(mem+8192,0xff,57344);
   memset(chrmap_old,0xff,768);
-  
+
   startup(&argc,argv);
   handle_cli_args(argc, argv);
 
@@ -213,19 +215,19 @@ main(int argc, char **argv)
 
   sa.sa_handler=sighandler;
   sa.sa_flags=SA_RESTART;
-  
+
   sigaction(SIGALRM,&sa,NULL);
 
   sa.sa_handler=dontpanic;
   sa.sa_flags=0;
-  
+
   sigaction(SIGINT, &sa,NULL);
   sigaction(SIGHUP, &sa,NULL);
   sigaction(SIGILL, &sa,NULL);
   sigaction(SIGTERM,&sa,NULL);
   sigaction(SIGQUIT,&sa,NULL);
   sigaction(SIGSEGV,&sa,NULL);
-  
+
   itv.it_interval.tv_sec=tmp/1000;
   itv.it_interval.tv_usec=(tmp%1000)*1000;
   itv.it_value.tv_sec=itv.it_interval.tv_sec;
@@ -234,14 +236,13 @@ main(int argc, char **argv)
 
   tape_add_observer(tape_observer);
   mainloop();
-  
 }
 
 void
 loadrom(unsigned char *x)
 {
   FILE *in;
-  
+
   if((in=fopen("ace.rom", "rb"))!=NULL)
   {
     if (fread(x,1,8192,in) != 8192) {
@@ -313,6 +314,7 @@ do_interrupt(void)
 {
   static int count=0;
 
+
   /* only do refresh() every 1/Nth */
   count++;
   if (count >= scrn_freq) {
@@ -324,7 +326,7 @@ do_interrupt(void)
   check_events();
 
   /* be careful not to screw up any pending reset... */
-  
+
   if(interrupted==1)
     interrupted=0;
 }
@@ -357,7 +359,7 @@ open_display(int *argc, char **argv)
     strcpy(dispname,ptr);
   else
     strcpy(dispname,":0.0");
-   
+
   if(!(display=XOpenDisplay(dispname))){
     fprintf(stderr,"Unable to open display %s\n",dispname);
     exit(1);
@@ -383,11 +385,11 @@ static int image_init()
   }
   scrn_freq=rrnoshm;
   linelen=ximage->bytes_per_line/SCALE;
-   
+
   /* The following represent 4, 8, 16 or 32 bpp repectively */
   if(linelen!=32 && linelen!=256 && linelen!=512 && linelen!=1024)
     fprintf(stderr,"Line length=%d; expect strange results!\n",linelen);
-   
+
   image=ximage->data;
   return 0;
 }
@@ -433,7 +435,7 @@ notify(int *argc, char **argv)
   xch.res_class = apptext;
   XSetWMProperties(display,borderwin,&appname,&iconname,argv,
       *argc,&xsh,&xwmh,&xch);
-      
+
   XFree(appname.value);
   XFree(iconname.value);
 }
@@ -1286,7 +1288,7 @@ check_events(void)
   static XEvent xev;
   XConfigureEvent *conf_ev;
   XCrossingEvent *cev;
-   
+
   while (XEventsQueued(display,QueuedAfterReading)){
     XNextEvent(display,&xev);
     switch(xev.type){
@@ -1352,24 +1354,24 @@ refresh(void)
   }
 
   /* draw normal lo-res screen */
-   
+
   /* translate to char map, comparing against previous */
-   
+
   ptr=mem+0x2400; /* D_FILE */
-   
+
   /* since we can't just do "don't bother if it's junk" as we always
    * need to draw a screen, just draw *valid* junk that won't result
    * in a segfault or anything. :-)
    */
   if(ptr-mem<0 || ptr-mem>0xf000) ptr=mem+0xf000;
   /*     ptr++;   */ /* skip first HALT */
-   
+
   cptr=mem+0x2c00;  /* char. set */
-   
+
   xmin=31; ymin=23; xmax=0; ymax=0;
-   
+
   bytesPerPixel = linelen / 256;
-   
+
   ofs=0;
   for(y=0;y<24;y++)
   {
@@ -1418,14 +1420,14 @@ refresh(void)
       }
     }
   }
-   
+
   /* now, copy new to old for next time */
   memcpy(chrmap_old,chrmap,768);
-   
+
   /* next bit happens for both hi and lo-res */
-   
+
   if(refresh_screen) xmin=0,ymin=0,xmax=31,ymax=23;
-   
+
   if(xmax>=xmin && ymax>=ymin)
   {
     XPutImage(display,mainwin,maingc,ximage,
@@ -1433,7 +1435,7 @@ refresh(void)
               (xmax-xmin+1)*8*SCALE,(ymax-ymin+1)*8*SCALE);
     XFlush(display);
   }
-   
+
   refresh_screen=0;
 }
 
