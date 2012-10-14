@@ -3,7 +3,7 @@
  * Copyright (C) 1994 Ian Collier.
  * xz81 changes (C) 1995-6 Russell Marks.
  * xace changes (C) 1997 Edward Patel.
- * xace changes (C) 2010 Lawrence Woodman.
+ * xace changes (C) 2010-12 Lawrence Woodman.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -80,8 +80,8 @@ int hsize=256*SCALE,vsize=192*SCALE;
 volatile int interrupted=0;
 int scrn_freq=2;
 
-unsigned char chrmap_old[24*32],chrmap[24*32];
-unsigned char himap_old[192*32],himap[192*32];
+/* Used to see if image needs refreshing on X display */
+unsigned char video_ram_old[24*32];
 
 int refresh_screen=1;
 
@@ -206,7 +206,7 @@ main(int argc, char **argv)
   loadrom(mem);
   tape_patches(mem);
   memset(mem+8192,0xff,57344);
-  memset(chrmap_old,0xff,768);
+  memset(video_ram_old,0xff,768);
 
   startup(&argc,argv);
   handle_cli_args(argc, argv);
@@ -314,7 +314,6 @@ do_interrupt(void)
 {
   static int count=0;
 
-
   /* only do refresh() every 1/Nth */
   count++;
   if (count >= scrn_freq) {
@@ -343,6 +342,7 @@ static Window borderwin, mainwin;
 static XImage *ximage;
 static unsigned char *image;
 static int linelen;
+static int bytes_per_pixel;
 static int black,white;
 static int invert=0;
 static int borderchange=1;
@@ -385,6 +385,7 @@ static int image_init()
   }
   scrn_freq=rrnoshm;
   linelen=ximage->bytes_per_line/SCALE;
+  bytes_per_pixel = linelen / 256;
 
   /* The following represent 4, 8, 16 or 32 bpp repectively */
   if(linelen!=32 && linelen!=256 && linelen!=512 && linelen!=1024)
@@ -1325,118 +1326,117 @@ check_events(void)
   }
 }
 
+/* Set a pixel in the image */
+void
+set_pixel(int x, int y, int colour)
+{
+  int sx, sy;
+  int imageIndex = (y*hsize+x)*SCALE*bytes_per_pixel;
+
+  for(sy = 0; sy < SCALE; sy++) {
+    for(sx = 0; sx < SCALE*bytes_per_pixel; sx++) {
+      image[imageIndex+(sy*hsize*bytes_per_pixel+sx)] = colour;
+    }
+  }
+}
+
+/* Set a character in the image
+ * x              Column in image to draw character
+ * y              Row in image to draw character
+ * inv            Whether an inverted character
+ * charbmap       Ptr to the character bit map
+ */
+void
+set_image_character(int x, int y, int inv, unsigned char *charbmap)
+{
+  int colour;
+  int charbmap_x, charbmap_y;
+  unsigned char charbmap_row;
+  unsigned char charbmap_row_mask;
+
+  for (charbmap_y = 0; charbmap_y < 8; charbmap_y++) {
+    charbmap_row = charbmap[charbmap_y];
+    if (inv) charbmap_row ^= 255;
+
+    if (linelen == 32) {
+      /* 1-bit mono */
+      /* doesn't support SCALE>1 */
+      image[(y*8+charbmap_y)*linelen+x]=~charbmap_row;
+    } else {
+      charbmap_row_mask = 128;
+      for (charbmap_x = 0; charbmap_x < 8; charbmap_x++) {
+        colour = (charbmap_row & charbmap_row_mask) ? black : white;
+        set_pixel(x*8+charbmap_x, y*8+charbmap_y, colour);
+        charbmap_row_mask >>= 1;
+      }
+    }
+  }
+}
 
 
-/* XXX tryout */
-
-/* to redraw the (low-res, at least) screen, we translate it into
- * a more normal char. map, then find the smallest rectangle which
- * covers all the changes, and update that.
+/* To redraw the screen, we translate it into a char. map, then find
+ * the smallest rectangle which covers all the changes, and update that.
  */
 void
 refresh(void)
 {
-  int j,k,m;
-  unsigned char *ptr,*cptr;
-  int x,y,b,c,d,inv,mask;
+  unsigned char *video_ram,*charset;
+  int x,y,c,inv;
   int xmin,ymin,xmax,ymax;
-  int ofs;
-  int bytesPerPixel;
-  int imageIndex;
+  int video_ram_old_ofs;
+  int chrmap_changed = 0;
 
-  if(borderchange>0)
-  {
-    /* XXX what about expose events? need to set borderchange... */
+  if (borderchange > 0) {
+    /* FIX: what about expose events? need to set borderchange... */
     XSetWindowBackground(display,borderwin,white);
     XClearWindow(display,borderwin);
     XFlush(display);
     borderchange=0;
   }
 
-  /* draw normal lo-res screen */
-
-  /* translate to char map, comparing against previous */
-
-  ptr=mem+0x2400; /* D_FILE */
+  charset = mem+0x2c00;
+  video_ram = mem+0x2400;
+  xmin = 31; ymin = 23; xmax = 0; ymax = 0;
 
   /* since we can't just do "don't bother if it's junk" as we always
    * need to draw a screen, just draw *valid* junk that won't result
    * in a segfault or anything. :-)
    */
-  if(ptr-mem<0 || ptr-mem>0xf000) ptr=mem+0xf000;
-  /*     ptr++;   */ /* skip first HALT */
+  if (video_ram-mem > 0xf000) video_ram = mem+0xf000;
 
-  cptr=mem+0x2c00;  /* char. set */
+  video_ram_old_ofs=0;
+  for (y = 0; y < 24; y++) {
+    for (x = 0; x < 32; x++, video_ram++, video_ram_old_ofs++) {
+      c = *video_ram;
 
-  xmin=31; ymin=23; xmax=0; ymax=0;
+      if (c != video_ram_old[video_ram_old_ofs] || refresh_screen) {
+        video_ram_old[video_ram_old_ofs] = c;
 
-  bytesPerPixel = linelen / 256;
-
-  ofs=0;
-  for(y=0;y<24;y++)
-  {
-    for(x=0;x<32;x++,ptr++,ofs++)
-    {
-      c=*ptr;
-
-      if((chrmap[ofs]=c)!=chrmap_old[ofs] || refresh_screen)
-      {
         /* update size of area to be drawn */
-        if(x<xmin) xmin=x;
-        if(y<ymin) ymin=y;
-        if(x>xmax) xmax=x;
-        if(y>ymax) ymax=y;
+        if (x < xmin) xmin=x;
+        if (y < ymin) ymin=y;
+        if (x > xmax) xmax=x;
+        if (y > ymax) ymax=y;
 
-        /* draw character into image */
-        inv=(c&128); c&=127;
+        inv = c&128;
+        c &= 127;
 
-        for(b=0;b<8;b++)
-        {
-          d=cptr[c*8+b]; if(inv) d^=255;
-
-          if(linelen==32)
-          {
-            /* 1-bit mono */
-            /* XXX doesn't support SCALE>1 */
-            image[(y*8+b)*linelen+x]=~d;
-          }
-          else
-          {
-            imageIndex = ((y*8+b)*hsize+x*8)*SCALE*bytesPerPixel;
-            mask=256;
-            while (mask>>=1)
-            {
-              m=((d&mask)?black:white);
-
-              for(j=0;j<SCALE;j++) {
-                for(k=0;k<SCALE*bytesPerPixel;k++) {
-                  image[imageIndex+(j*hsize*bytesPerPixel+k)] = m;
-                }
-              }
-              imageIndex += SCALE*bytesPerPixel;
-            }
-          }
-        }
+        set_image_character(x, y, inv, charset+c*8);
       }
     }
   }
 
-  /* now, copy new to old for next time */
-  memcpy(chrmap_old,chrmap,768);
+  if (refresh_screen)
+    xmin=0; ymin=0; xmax=31; ymax=23;
 
-  /* next bit happens for both hi and lo-res */
-
-  if(refresh_screen) xmin=0,ymin=0,xmax=31,ymax=23;
-
-  if(xmax>=xmin && ymax>=ymin)
-  {
-    XPutImage(display,mainwin,maingc,ximage,
-              xmin*8*SCALE,ymin*8*SCALE,xmin*8*SCALE,ymin*8*SCALE,
-              (xmax-xmin+1)*8*SCALE,(ymax-ymin+1)*8*SCALE);
+  if (xmax >= xmin && ymax >= ymin) {
+    XPutImage(display, mainwin, maingc, ximage,
+              xmin*8*SCALE, ymin*8*SCALE, xmin*8*SCALE, ymin*8*SCALE,
+              (xmax-xmin+1)*8*SCALE, (ymax-ymin+1)*8*SCALE);
     XFlush(display);
   }
 
-  refresh_screen=0;
+  refresh_screen = 0;
 }
 
 void
