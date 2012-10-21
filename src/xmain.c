@@ -171,6 +171,116 @@ const int keypress_response[] = {
   XK_asciitilde, 1, 0xfe, 0, 0xfd
 };
 
+/* key, keyport_index, or_notvalue, keyport_index, or_notvalue
+ * if keyport_index == -1 then no action for that port */
+const int keyrelease_response[] = {
+  XK_F4, 3, 0xf7, 0, 0xfe,
+  XK_F9, 4, 0xfd, 0, 0xfe,
+  XK_Control_L, 7, 0xfe, 0, 0xfe,
+  XK_Control_R, 7, 0xfe, 0, 0xfe,
+  XK_F1, 3, 0xfe, 0, 0xfe,
+  XK_Up, 4, 0xef, 0, 0xfe,
+  XK_Down, 4, 0xf7, 0, 0xfe,
+  XK_Left, 3, 0xef, 0, 0xfe,
+  XK_Right, 4, 0xfb, 0, 0xfe,
+  XK_space, 7, 0xfe, -1, 0,
+  XK_exclam, 3, 0xfe, 0, 0xfd,
+  XK_quotedbl, 5, 0xfe, 0, 0xfd,
+  XK_numbersign, 3, 0xfb, 0, 0xfd,
+  XK_dollar, 3, 0xf7, 0, 0xfd,
+  XK_percent, 3, 0xef, 0, 0xfd,
+  XK_ampersand, 4, 0xef, 0, 0xfd,
+  XK_apostrophe, 4, 0xf7, 0, 0xfd,
+  XK_parenleft, 4, 0xfb, 0, 0xfd,
+  XK_parenright, 4, 0xfd, 0, 0xfd,
+  XK_asterisk, 7, 0xf7, 0, 0xfd,
+  XK_plus, 6, 0xfb, 0, 0xfd,
+  XK_comma, 7, 0xfb, 0, 0xfd,
+  XK_minus, 6, 0xf7, 0, 0xfd,
+  XK_period, 7, 0xfd, 0, 0xfd,
+  XK_slash, 7, 0xef, 0, 0xfd,
+  XK_0, 4, 0xfe, -1, 0,
+  XK_1, 3, 0xfe, -1, 0,
+  XK_2, 3, 0xfd, -1, 0,
+  XK_3, 3, 0xfb, -1, 0,
+  XK_4, 3, 0xf7, -1, 0,
+  XK_5, 3, 0xef, -1, 0,
+  XK_6, 4, 0xef, -1, 0,
+  XK_7, 4, 0xf7, -1, 0,
+  XK_8, 4, 0xfb, -1, 0,
+  XK_9, 4, 0xfd, -1, 0,
+  XK_colon, 0, 0xfb, 0, 0xfd,
+  XK_semicolon, 5, 0xfd, 0, 0xfd,
+  XK_less, 2, 0xf7, 0, 0xfd,
+  XK_equal, 6, 0xfd, 0, 0xfd,
+  XK_greater, 2, 0xef, 0, 0xfd,
+  XK_question, 0, 0xef, 0, 0xfd,
+  XK_at, 3, 0xfd, 0, 0xfd,
+  XK_A, 0, 0xfe, 1, 0xfe,
+  XK_a, 1, 0xfe, -1, 0,
+  XK_B, 0, 0xfe, 7, 0xf7,
+  XK_b, 7, 0xf7, -1, 0,
+  XK_C, 0, 0xfe, 0, 0xef,
+  XK_c, 0, 0xef, -1, 0,
+  XK_D, 0, 0xfe, 1, 0xfb,
+  XK_d, 1, 0xfb, -1, 0,
+  XK_E, 0, 0xfe, 2, 0xfb,
+  XK_e, 2, 0xfb, -1, 0,
+  XK_F, 0, 0xfe, 1, 0xf7,
+  XK_f, 1, 0xf7, -1, 0,
+  XK_G, 0, 0xfe, 1, 0xef,
+  XK_g, 1, 0xef, -1, 0,
+  XK_H, 0, 0xfe, 6, 0xef,
+  XK_h, 6, 0xef, -1, 0,
+  XK_I, 0, 0xfe, 5, 0xfb,
+  XK_i, 5, 0xfb, -1, 0,
+  XK_J, 0, 0xfe, 6, 0xf7,
+  XK_j, 6, 0xf7, -1, 0,
+  XK_K, 0, 0xfe, 6, 0xfb,
+  XK_k, 6, 0xfb, -1, 0,
+  XK_L, 0, 0xfe, 6, 0xfd,
+  XK_l, 6, 0xfd, -1, 0,
+  XK_M, 0, 0xfe, 7, 0xfd,
+  XK_m, 7, 0xfd, -1, 0,
+  XK_N, 0, 0xfe, 7, 0xfb,
+  XK_n, 7, 0xfb, -1, 0,
+  XK_O, 0, 0xfe, 5, 0xfd,
+  XK_o, 5, 0xfd, -1, 0,
+  XK_P, 0, 0xfe, 5, 0xfe,
+  XK_p, 5, 0xfe, -1, 0,
+  XK_Q, 0, 0xfe, 2, 0xfe,
+  XK_q, 2, 0xfe, -1, 0,
+  XK_R, 0, 0xfe, 2, 0xf7,
+  XK_r, 2, 0xf7, -1, 0,
+  XK_S, 0, 0xfe, 1, 0xfd,
+  XK_s, 1, 0xfd, -1, 0,
+  XK_T, 0, 0xfe, 2, 0xef,
+  XK_t, 2, 0xef, -1, 0,
+  XK_U, 0, 0xfe, 5, 0xf7,
+  XK_u, 5, 0xf7, -1, 0,
+  XK_V, 0, 0xfe, 7, 0xef,
+  XK_v, 7, 0xef, -1, 0,
+  XK_W, 0, 0xfe, 2, 0xfd,
+  XK_w, 2, 0xfd, -1, 0,
+  XK_X, 0, 0xfe, 0, 0xf7,
+  XK_x, 0, 0xf7, -1, 0,
+  XK_Y, 0, 0xfe, 5, 0xef,
+  XK_y, 5, 0xef, -1, 0,
+  XK_Z, 0, 0xfe, 0, 0xfb,
+  XK_z, 0, 0xfb, -1, 0,
+  XK_bracketleft, 5, 0xef, 0, 0xfd,
+  XK_backslash, 1, 0xfb, 0, 0xfd,
+  XK_bracketright, 5, 0xf7, 0, 0xfd,
+  XK_asciicircum, 6, 0xef, 0, 0xfd,
+  XK_underscore, 4, 0xfe, 0, 0xfd,
+  XK_grave, 5, 0xfb, 0, 0xfd,
+  XK_braceleft, 1, 0xf7, 0, 0xfd,
+  XK_bar, 1, 0xfd, 0, 0xfd,
+  XK_braceright, 1, 0xef, 0, 0xfd,
+  XK_asciitilde, 1, 0xfe, 0, 0xfd,
+};
+
+
 #define BORDER_WIDTH  (20*SCALE)
 int rrnoshm=4;
 unsigned char mem[65536];
@@ -656,6 +766,31 @@ process_keypress_keyports(KeySym ks)
   }
 }
 
+int
+process_keyrelease_keyports(KeySym ks)
+{
+  int i;
+  int keyfound = 0;
+  int keyport1, keyport2;
+  int keyport1_or_value, keyport2_or_value;
+
+  for (i = 0; i < sizeof(keyrelease_response); i+= 5) {
+    if (keyrelease_response[i] == ks) {
+      keyfound = 1;
+      keyport1 = keyrelease_response[i+1];
+      keyport2 = keyrelease_response[i+3];
+      keyport1_or_value = keyrelease_response[i+2];
+      keyport2_or_value = keyrelease_response[i+4];
+
+      keyports[keyport1] |= ~keyport1_or_value;
+      if (keyport2 != -1)
+        keyports[keyport2] |= ~keyport2_or_value;
+      break;
+    }
+  }
+  return keyfound;
+}
+
 void
 process_keypress_emu_commands(KeySym ks, XKeyEvent *kev)
 {
@@ -727,354 +862,23 @@ process_keyrelease(XKeyEvent *kev)
 
   XLookupString(kev,buf,2,&ks,NULL);
 
-  switch(ks){
-  case XK_Return:
-    keyports[6]|=1;
-    break;
-  case XK_Shift_L:
-  case XK_Shift_R:
-  case XK_Alt_L:
-  case XK_Alt_R:
-  case XK_Meta_L:
-  case XK_Meta_R:
-  case XK_Escape:
-  case XK_Tab:
-    clear_keyboard();
-    break;
-  case XK_F4:
-    keyports[3]|=~0xf7;
-    keyports[0]|=~0xfe;
-    break;
-  case XK_F9:
-    keyports[4]|=~0xfd;
-    keyports[0]|=~0xfe;
-    break;
-  case XK_Control_L:
-  case XK_Control_R:
-    keyports[7]|=~0xfe;
-    keyports[0]|=~0xfe;
-    break;
-  case XK_F1:
-    keyports[3]|=~0xfe;
-    keyports[0]|=~0xfe;
-    break;
-  case XK_BackSpace:
-  case XK_Delete:
-    keyports[0]|=1;
-    keyports[4]|=1;
-    break;
-  case XK_Up:
-    keyports[4]|=~0xef;
-    keyports[0]|=~0xfe;
-    break;
-  case XK_Down:
-    keyports[4]|=~0xf7;
-    keyports[0]|=~0xfe;
-    break;
-  case XK_Left:
-    keyports[3]|=~0xef;
-    keyports[0]|=~0xfe;
-    break;
-  case XK_Right:
-    keyports[4]|=~0xfb;
-    keyports[0]|=~0xfe;
-     break;
-  case XK_space:
-    keyports[7]|=~0xfe;
-    break;
-  case XK_exclam:
-    keyports[3]|=~0xfe;
-    keyports[0]|=~0xfd;
-    break;
-  case XK_quotedbl:
-    keyports[5]|=~0xfe;
-    keyports[0]|=~0xfd;
-    break;
-  case XK_numbersign:
-    keyports[3]|=~0xfb;
-    keyports[0]|=~0xfd;
-    break;
-  case XK_dollar:
-    keyports[3]|=~0xf7;
-    keyports[0]|=~0xfd;
-    break;
-  case XK_percent:
-    keyports[3]|=~0xef;
-    keyports[0]|=~0xfd;
-    break;
-  case XK_ampersand:
-    keyports[4]|=~0xef;
-    keyports[0]|=~0xfd;
-    break;
-  case XK_apostrophe:
-    keyports[4]|=~0xf7;
-    keyports[0]|=~0xfd;
-    break;
-  case XK_parenleft:
-    keyports[4]|=~0xfb;
-    keyports[0]|=~0xfd;
-    break;
-  case XK_parenright:
-    keyports[4]|=~0xfd;
-    keyports[0]|=~0xfd;
-    break;
-  case XK_asterisk:
-    keyports[7]|=~0xf7;
-    keyports[0]|=~0xfd;
-    break;
-  case XK_plus:
-    keyports[6]|=~0xfb;
-    keyports[0]|=~0xfd;
-    break;
-  case XK_comma:
-    keyports[7]|=~0xfb;
-    keyports[0]|=~0xfd;
-    break;
-  case XK_minus:
-    keyports[6]|=~0xf7;
-    keyports[0]|=~0xfd;
-    break;
-  case XK_period:
-    keyports[7]|=~0xfd;
-    keyports[0]|=~0xfd;
-    break;
-  case XK_slash:
-    keyports[7]|=~0xef;
-    keyports[0]|=~0xfd;
-    break;
-  case XK_0:
-    keyports[4]|=~0xfe;
-    break;
-  case XK_1:
-    keyports[3]|=~0xfe;
-    break;
-  case XK_2:
-    keyports[3]|=~0xfd;
-    break;
-  case XK_3:
-    keyports[3]|=~0xfb;
-    break;
-  case XK_4:
-    keyports[3]|=~0xf7;
-    break;
-  case XK_5:
-    keyports[3]|=~0xef;
-    break;
-  case XK_6:
-    keyports[4]|=~0xef;
-    break;
-  case XK_7:
-    keyports[4]|=~0xf7;
-    break;
-  case XK_8:
-    keyports[4]|=~0xfb;
-    break;
-  case XK_9:
-    keyports[4]|=~0xfd;
-    break;
-  case XK_colon:
-    keyports[0]|=~0xfb;
-    keyports[0]|=~0xfd;
-    break;
-  case XK_semicolon:
-    keyports[5]|=~0xfd;
-    keyports[0]|=~0xfd;
-    break;
-  case XK_less:
-    keyports[2]|=~0xf7;
-    keyports[0]|=~0xfd;
-    break;
-  case XK_equal:
-    keyports[6]|=~0xfd;
-    keyports[0]|=~0xfd;
-    break;
-  case XK_greater:
-    keyports[2]|=~0xef;
-    keyports[0]|=~0xfd;
-    break;
-  case XK_question:
-    keyports[0]|=~0xef;
-    keyports[0]|=~0xfd;
-    break;
-  case XK_at:
-    keyports[3]|=~0xfd;
-    keyports[0]|=~0xfd;
-    break;
-  case XK_A:
-    keyports[0]|=~0xfe;
-  case XK_a:
-    keyports[1]|=~0xfe;
-    break;
-  case XK_B:
-    keyports[0]|=~0xfe;
-  case XK_b:
-    keyports[7]|=~0xf7;
-    break;
-  case XK_C:
-    keyports[0]|=~0xfe;
-  case XK_c:
-    keyports[0]|=~0xef;
-    break;
-  case XK_D:
-    keyports[0]|=~0xfe;
-  case XK_d:
-    keyports[1]|=~0xfb;
-    break;
-  case XK_E:
-    keyports[0]|=~0xfe;
-  case XK_e:
-    keyports[2]|=~0xfb;
-    break;
-  case XK_F:
-    keyports[0]|=~0xfe;
-  case XK_f:
-    keyports[1]|=~0xf7;
-    break;
-  case XK_G:
-    keyports[0]|=~0xfe;
-  case XK_g:
-    keyports[1]|=~0xef;
-    break;
-  case XK_H:
-    keyports[0]|=~0xfe;
-  case XK_h:
-    keyports[6]|=~0xef;
-    break;
-  case XK_I:
-    keyports[0]|=~0xfe;
-  case XK_i:
-    keyports[5]|=~0xfb;
-    break;
-  case XK_J:
-    keyports[0]|=~0xfe;
-  case XK_j:
-    keyports[6]|=~0xf7;
-    break;
-  case XK_K:
-    keyports[0]|=~0xfe;
-  case XK_k:
-    keyports[6]|=~0xfb;
-    break;
-  case XK_L:
-    keyports[0]|=~0xfe;
-  case XK_l:
-    keyports[6]|=~0xfd;
-    break;
-  case XK_M:
-    keyports[0]|=~0xfe;
-  case XK_m:
-    keyports[7]|=~0xfd;
-    break;
-  case XK_N:
-    keyports[0]|=~0xfe;
-  case XK_n:
-    keyports[7]|=~0xfb;
-    break;
-  case XK_O:
-    keyports[0]|=~0xfe;
-  case XK_o:
-    keyports[5]|=~0xfd;
-    break;
-  case XK_P:
-    keyports[0]|=~0xfe;
-  case XK_p:
-    keyports[5]|=~0xfe;
-    break;
-  case XK_Q:
-    keyports[0]|=~0xfe;
-  case XK_q:
-    keyports[2]|=~0xfe;
-    break;
-  case XK_R:
-    keyports[0]|=~0xfe;
-  case XK_r:
-    keyports[2]|=~0xf7;
-    break;
-  case XK_S:
-    keyports[0]|=~0xfe;
-  case XK_s:
-    keyports[1]|=~0xfd;
-    break;
-  case XK_T:
-    keyports[0]|=~0xfe;
-  case XK_t:
-    keyports[2]|=~0xef;
-    break;
-  case XK_U:
-    keyports[0]|=~0xfe;
-  case XK_u:
-    keyports[5]|=~0xf7;
-    break;
-  case XK_V:
-    keyports[0]|=~0xfe;
-  case XK_v:
-    keyports[7]|=~0xef;
-    break;
-  case XK_W:
-    keyports[0]|=~0xfe;
-  case XK_w:
-    keyports[2]|=~0xfd;
-    break;
-  case XK_X:
-    keyports[0]|=~0xfe;
-  case XK_x:
-    keyports[0]|=~0xf7;
-    break;
-  case XK_Y:
-    keyports[0]|=~0xfe;
-  case XK_y:
-    keyports[5]|=~0xef;
-    break;
-  case XK_Z:
-    keyports[0]|=~0xfe;
-  case XK_z:
-    keyports[0]|=~0xfb;
-    break;
-  case XK_bracketleft:
-    keyports[5]|=~0xef;
-    keyports[0]|=~0xfd;
-    break;
-  case XK_backslash:
-    keyports[1]|=~0xfb;
-    keyports[0]|=~0xfd;
-    break;
-  case XK_bracketright:
-    keyports[5]|=~0xf7;
-    keyports[0]|=~0xfd;
-    break;
-  case XK_asciicircum:
-    keyports[6]|=~0xef;
-    keyports[0]|=~0xfd;
-    break;
-  case XK_underscore:
-    keyports[4]|=~0xfe;
-    keyports[0]|=~0xfd;
-    break;
-  case XK_grave:
-    keyports[5]|=~0xfb;
-    keyports[0]|=~0xfd;
-    break;
-  case XK_braceleft:
-    keyports[1]|=~0xf7;
-    keyports[0]|=~0xfd;
-    break;
-  case XK_bar:
-    keyports[1]|=~0xfd;
-    keyports[0]|=~0xfd;
-    break;
-  case XK_braceright:
-    keyports[1]|=~0xef;
-    keyports[0]|=~0xfd;
-    break;
-  case XK_asciitilde:
-    keyports[1]|=~0xfe;
-    keyports[0]|=~0xfd;
-    break;
-  default:
-    clear_keyboard();
-    break;
+  if (!process_keyrelease_keyports(ks)) {
+    /* key not in keyrelease_response list */
+    switch (ks) {
+      case XK_Return:
+        keyports[6] |= 1;
+        break;
+
+      case XK_BackSpace:
+      case XK_Delete:
+        keyports[0] |= 1;
+        keyports[4] |= 1;
+        break;
+
+      default:
+        clear_keyboard();
+    }
   }
-  return;
 }
 
 void
