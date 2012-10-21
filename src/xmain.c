@@ -42,11 +42,6 @@
 
 #include "xace_icon.h"
 
-#if SCALE>1
-static unsigned long scaleup[256]; /* to hold table of scaled up bytes,
-                                      e.g. 00110100B -> 0000111100110000B */
-#endif
-
 unsigned char keyports[8] = {
   0xff,
   0xff,
@@ -666,19 +661,6 @@ notify(int *argc, char **argv)
 }
 
 
-#if SCALE>1
-static void scaleup_init(){
-  int j, k, l, m;
-  unsigned long bigval; /* SCALING must be <= 4! */
-  for(l=0;l<256;scaleup[l++]=bigval)
-    for(m=l,bigval=j=0;j<8;j++) {
-      for(k=0;k<SCALE;k++)
-        bigval=(bigval>>1)|((m&1)<<31);
-        m>>=1;
-    }
-}
-#endif
-
 void
 startup(int *argc, char **argv)
 {
@@ -711,10 +693,6 @@ startup(int *argc, char **argv)
   if(image_init()) {
     exit(1);
   }
-
-#if SCALE>1
-  if(linelen==32) scaleup_init();
-#endif
 
   borderwin=XCreateSimpleWindow(display,root,0,0,
             hsize+BORDER_WIDTH*2,vsize+BORDER_WIDTH*2,0,0,0);
