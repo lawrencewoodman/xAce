@@ -311,6 +311,7 @@ static int flipFlop;
 void clear_keyboard(void);
 void loadrom(unsigned char *x);
 void startup(int *argc, char **argv);
+void process_keypress_keyports(KeySym ks);
 void process_keypress(XKeyEvent *kev);
 void check_events(void);
 void refresh(void);
@@ -514,18 +515,33 @@ fix_tstates(void)
 }
 
 void
+readch_from_spool_file(void)
+{
+  KeySym ks;
+
+  if ((ks=fgetc(spoolFile))) {
+    if (ks == EOF) {
+      fclose(spoolFile);
+      spoolFile = NULL;
+      normal_speed();
+    } else {
+      process_keypress_keyports(ks);
+    }
+  }
+}
+
+void
 read_from_spool_file(void)
 {
-  if (spoolFile) {
-    if (flipFlop==1) {
-      process_keypress(NULL);
-    }
-    if (flipFlop==3) {
-      flipFlop=0;
-      clear_keyboard();
-    }
-    flipFlop++;
+  if (!spoolFile) {return;}
+
+  if (flipFlop == 1) {
+    readch_from_spool_file();
+  } else if (flipFlop == 3) {
+    flipFlop = 0;
+    clear_keyboard();
   }
+  flipFlop++;
 }
 
 void
@@ -545,8 +561,8 @@ do_interrupt(void)
 
   /* be careful not to screw up any pending reset... */
 
-  if(interrupted==1)
-    interrupted=0;
+  if (interrupted == 1)
+    interrupted = 0;
 }
 
 /* the remainder of xmain.c is based on xz80's xspectrum.c. */
@@ -816,17 +832,7 @@ process_keypress(XKeyEvent *kev)
   char buf[3];
   KeySym ks;
 
-  if (spoolFile && (ks=fgetc(spoolFile))) {
-    if (ks==EOF) {
-      fclose(spoolFile);
-      spoolFile=NULL;
-      normal_speed();
-      return;
-    }
-  } else {
-    XLookupString(kev, buf, 2, &ks, NULL);
-  }
-
+  XLookupString(kev, buf, 2, &ks, NULL);
   process_keypress_emu_commands(ks, kev);
   process_keypress_keyports(ks);
 }
