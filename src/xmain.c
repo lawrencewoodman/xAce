@@ -332,16 +332,32 @@ dontpanic(int signum)
   exit(1);
 }
 
+/* ints_per_sec   Interrupts per second up to 1000 */
+static void
+set_itimer(int ints_per_sec)
+{
+  struct itimerval itv;
+  int freq = 1000/ints_per_sec;
+
+  itv.it_interval.tv_sec = 0;
+  itv.it_interval.tv_usec = (freq % 1000) * 1000;
+  itv.it_value.tv_sec = itv.it_interval.tv_sec;
+  itv.it_value.tv_usec = itv.it_interval.tv_usec;
+  setitimer(ITIMER_REAL, &itv, NULL);
+}
+
 static void
 normal_speed(void)
 {
+  set_itimer(50);    /* 50 ints/sec */
   scrn_freq = 4;
   tsmax = 62500;
 }
 
-void
+static void
 fast_speed(void)
 {
+  set_itimer(1000);  /* 1000 ints/sec */
   scrn_freq = 2;
   tsmax = ULONG_MAX;
 }
@@ -409,8 +425,6 @@ void
 main(int argc, char **argv)
 {
   struct sigaction sa;
-  struct itimerval itv;
-  int tmp=1000/50;  /* 50 ints/sec */
 
   printf("xace: Jupiter ACE emulator v%s (by Edward Patel)\n", XACE_VERSION);
   printf("Keys:\n");
@@ -429,6 +443,7 @@ main(int argc, char **argv)
   memset(video_ram_old,0xff,768);
 
   startup(&argc,argv);
+  normal_speed();
   handle_cli_args(argc, argv);
 
   memset(&sa,0,sizeof(sa));
@@ -447,12 +462,6 @@ main(int argc, char **argv)
   sigaction(SIGTERM,&sa,NULL);
   sigaction(SIGQUIT,&sa,NULL);
   sigaction(SIGSEGV,&sa,NULL);
-
-  itv.it_interval.tv_sec=tmp/1000;
-  itv.it_interval.tv_usec=(tmp%1000)*1000;
-  itv.it_value.tv_sec=itv.it_interval.tv_sec;
-  itv.it_value.tv_usec=itv.it_interval.tv_usec;
-  setitimer(ITIMER_REAL,&itv,NULL);
 
   tape_add_observer(tape_observer);
   mainloop();
