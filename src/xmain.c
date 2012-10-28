@@ -317,15 +317,16 @@ void check_events(void);
 void refresh(void);
 void closedown(void);
 
+/* Handle the SIGALRM signal used for the Ace's interrupt */
 void
-sighandler(int a)
+sigint_handler(int signum)
 {
-  if(interrupted<2) interrupted=1;
+  if (interrupted < 2 ) interrupted = 1;
 }
 
-
+/* Handle any Signals to do with quiting the program */
 void
-dontpanic(int signum)
+sigquit_handler(int signum)
 {
   tape_detach();
   closedown();
@@ -421,11 +422,30 @@ handle_cli_args(int argc, char **argv)
   }
 }
 
+static void
+setup_sighandlers(void)
+{
+  struct sigaction sa;
+  memset(&sa, 0, sizeof(sa));
+
+  sa.sa_handler = sigint_handler;
+  sa.sa_flags = SA_RESTART;
+  sigaction(SIGALRM, &sa, NULL);
+
+  sa.sa_handler = sigquit_handler;
+  sa.sa_flags = 0;
+
+  sigaction(SIGINT,  &sa, NULL);
+  sigaction(SIGHUP,  &sa, NULL);
+  sigaction(SIGILL,  &sa, NULL);
+  sigaction(SIGTERM, &sa, NULL);
+  sigaction(SIGQUIT, &sa, NULL);
+  sigaction(SIGSEGV, &sa, NULL);
+}
+
 void
 main(int argc, char **argv)
 {
-  struct sigaction sa;
-
   printf("xace: Jupiter ACE emulator v%s (by Edward Patel)\n", XACE_VERSION);
   printf("Keys:\n");
   printf("\tF1     - Delete Line\n");
@@ -439,30 +459,13 @@ main(int argc, char **argv)
 
   loadrom(mem);
   tape_patches(mem);
-  memset(mem+8192,0xff,57344);
-  memset(video_ram_old,0xff,768);
+  memset(mem+8192, 0xff, 57344);
+  memset(video_ram_old, 0xff, 768);
 
-  startup(&argc,argv);
+  startup(&argc, argv);
   normal_speed();
   handle_cli_args(argc, argv);
-
-  memset(&sa,0,sizeof(sa));
-
-  sa.sa_handler=sighandler;
-  sa.sa_flags=SA_RESTART;
-
-  sigaction(SIGALRM,&sa,NULL);
-
-  sa.sa_handler=dontpanic;
-  sa.sa_flags=0;
-
-  sigaction(SIGINT, &sa,NULL);
-  sigaction(SIGHUP, &sa,NULL);
-  sigaction(SIGILL, &sa,NULL);
-  sigaction(SIGTERM,&sa,NULL);
-  sigaction(SIGQUIT,&sa,NULL);
-  sigaction(SIGSEGV,&sa,NULL);
-
+  setup_sighandlers();
   tape_add_observer(tape_observer);
   mainloop();
 }
@@ -804,7 +807,7 @@ process_keypress_emu_commands(KeySym ks, XKeyEvent *kev)
     case XK_q:
       /* If Ctrl-q then Quit xAce */
       if (spoolFile == NULL && kev->state & ControlMask) {
-        dontpanic(SIGQUIT);
+        raise(SIGQUIT);
         /* doesn't return */
       }
       break;
