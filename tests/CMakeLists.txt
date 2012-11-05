@@ -1,4 +1,7 @@
 include_directories(${xAce_SOURCE_DIR}/src)
 add_executable(tape_test tape_test.c ${xAce_SOURCE_DIR}/src/tape.c)
+add_executable(keyboard_test keyboard_test.c ${xAce_SOURCE_DIR}/src/keyboard.c)
 target_link_libraries(tape_test)
+target_link_libraries(keyboard_test X11)
 add_test(tape_test tape_test)
+add_test(keyboard_test keyboard_test)

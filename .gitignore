@@ -4,6 +4,7 @@
 # Executables
 xace
 tests/tape_test
+tests/keyboard_test
 
 # Makefiles
 Makefile

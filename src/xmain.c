@@ -37,246 +37,12 @@
 
 #include "z80.h"
 #include "tape.h"
-
-#define MAX_DISP_LEN 256
-
+#include "keyboard.h"
 #include "xace_icon.h"
 
-unsigned char keyports[8] = {
-  0xff,
-  0xff,
-  0xff,
-  0xff,
-  0xff,
-  0xff,
-  0xff,
-  0xff
-};
-
-
-/* key, keyport_index, and_value, keyport_index, and_value
- * if keyport_index == -1 then no action for that port */
-const int keypress_response[] = {
-  XK_Escape, 7, 0xfe, 0, 0xfe,     /* Break */
-  '\n', 6, 0xfe, -1, 0,
-  XK_Return, 6, 0xfe, -1, 0,
-  XK_F1, 3, 0xfe, 0, 0xfe,         /* Delete line */
-  XK_F4, 3, 0xf7, 0, 0xfe,         /* Inverse video */
-  XK_F9, 4, 0xfd, 0, 0xfe,         /* Graphics */
-  XK_BackSpace, 0, 0xfe, 4, 0xfe,
-  XK_Delete, 0, 0xfe, 4, 0xfe,
-  XK_Up, 4, 0xef, 0, 0xfe,
-  XK_Down, 4, 0xf7, 0, 0xfe,
-  XK_Left, 3, 0xef, 0, 0xfe,
-  XK_Right, 4, 0xfb, 0, 0xfe,
-  XK_space, 7, 0xfe, -1, 0,
-  XK_exclam, 3, 0xfe, 0, 0xfd,
-  XK_quotedbl, 5, 0xfe, 0, 0xfd,
-  XK_numbersign, 3, 0xfb, 0, 0xfd,
-  XK_dollar, 3, 0xf7, 0, 0xfd,
-  XK_percent, 3, 0xef, 0, 0xfd,
-  XK_ampersand, 4, 0xef, 0, 0xfd,
-  XK_apostrophe, 4, 0xf7, 0, 0xfd,
-  XK_parenleft, 4, 0xfb, 0, 0xfd,
-  XK_parenright, 4, 0xfd, 0, 0xfd,
-  XK_asterisk, 7, 0xf7, 0, 0xfd,
-  XK_plus, 6, 0xfb, 0, 0xfd,
-  XK_comma, 7, 0xfb, 0, 0xfd,
-  XK_minus, 6, 0xf7, 0, 0xfd,
-  XK_period, 7, 0xfd, 0, 0xfd,
-  XK_slash, 7, 0xef, 0, 0xfd,
-  XK_0, 4, 0xfe, -1, 0,
-  XK_1, 3, 0xfe, -1, 0,
-  XK_2, 3, 0xfd, -1, 0,
-  XK_3, 3, 0xfb, -1, 0,
-  XK_4, 3, 0xf7, -1, 0,
-  XK_5, 3, 0xef, -1, 0,
-  XK_6, 4, 0xef, -1, 0,
-  XK_7, 4, 0xf7, -1, 0,
-  XK_8, 4, 0xfb, -1, 0,
-  XK_9, 4, 0xfd, -1, 0,
-  XK_colon, 0, 0xfb, 0, 0xfd,
-  XK_semicolon, 5, 0xfd, 0, 0xfd,
-  XK_less, 2, 0xf7, 0, 0xfd,
-  XK_equal, 6, 0xfd, 0, 0xfd,
-  XK_greater, 2, 0xef, 0, 0xfd,
-  XK_question, 0, 0xef, 0, 0xfd,
-  XK_at, 3, 0xfd, 0, 0xfd,
-  XK_A, 0, 0xfe, 1, 0xfe,
-  XK_a, 1, 0xfe, -1, 0,
-  XK_B, 0, 0xfe, 7, 0xf7,
-  XK_b, 7, 0xf7, -1, 0,
-  XK_C, 0, 0xfe, 0, 0xef,
-  XK_c, 0, 0xef, -1, 0,
-  XK_D, 0, 0xfe, 1, 0xfb,
-  XK_d, 1, 0xfb, -1, 0,
-  XK_E, 0, 0xfe, 2, 0xfb,
-  XK_e, 2, 0xfb, -1, 0,
-  XK_F, 0, 0xfe, 1, 0xf7,
-  XK_f, 1, 0xf7, -1, 0,
-  XK_G, 0, 0xfe, 1, 0xef,
-  XK_g, 1, 0xef, -1, 0,
-  XK_H, 0, 0xfe, 6, 0xef,
-  XK_h, 6, 0xef, -1, 0,
-  XK_I, 0, 0xfe, 5, 0xfb,
-  XK_i, 5, 0xfb, -1, 0,
-  XK_J, 0, 0xfe, 6, 0xf7,
-  XK_j, 6, 0xf7, -1, 0,
-  XK_K, 0, 0xfe, 6, 0xfb,
-  XK_k, 6, 0xfb, -1, 0,
-  XK_L, 0, 0xfe, 6, 0xfd,
-  XK_l, 6, 0xfd, -1, 0,
-  XK_M, 0, 0xfe, 7, 0xfd,
-  XK_m, 7, 0xfd, -1, 0,
-  XK_N, 0, 0xfe, 7, 0xfb,
-  XK_n, 7, 0xfb, -1, 0,
-  XK_O, 0, 0xfe, 5, 0xfd,
-  XK_o, 5, 0xfd, -1, 0,
-  XK_P, 0, 0xfe, 5, 0xfe,
-  XK_p, 5, 0xfe, -1, 0,
-  XK_Q, 0, 0xfe, 2, 0xfe,
-  XK_q, 2, 0xfe, -1, 0,
-  XK_R, 0, 0xfe, 2, 0xf7,
-  XK_r, 2, 0xf7, -1, 0,
-  XK_S, 0, 0xfe, 1, 0xfd,
-  XK_s, 1, 0xfd, -1, 0,
-  XK_T, 0, 0xfe, 2, 0xef,
-  XK_t, 2, 0xef, -1, 0,
-  XK_U, 0, 0xfe, 5, 0xf7,
-  XK_u, 5, 0xf7, -1, 0,
-  XK_V, 0, 0xfe, 7, 0xef,
-  XK_v, 7, 0xef, -1, 0,
-  XK_W, 0, 0xfe, 2, 0xfd,
-  XK_w, 2, 0xfd, -1, 0,
-  XK_X, 0, 0xfe, 0, 0xf7,
-  XK_x, 0, 0xf7, -1, 0,
-  XK_Y, 0, 0xfe, 5, 0xef,
-  XK_y, 5, 0xef, -1, 0,
-  XK_Z, 0, 0xfe, 0, 0xfb,
-  XK_z, 0, 0xfb, -1, 0,
-  XK_bracketleft, 5, 0xef, 0, 0xfd,
-  XK_backslash, 1, 0xfb, 0, 0xfd,
-  XK_bracketright, 5, 0xf7, 0, 0xfd,
-  XK_asciicircum, 6, 0xef, 0, 0xfd,
-  XK_underscore, 4, 0xfe, 0, 0xfd,
-  XK_grave, 5, 0xfb, 0, 0xfd,
-  XK_braceleft, 1, 0xf7, 0, 0xfd,
-  XK_bar, 1, 0xfd, 0, 0xfd,
-  XK_braceright, 1, 0xef, 0, 0xfd,
-  XK_asciitilde, 1, 0xfe, 0, 0xfd
-};
-
-/* key, keyport_index, or_notvalue, keyport_index, or_notvalue
- * if keyport_index == -1 then no action for that port */
-const int keyrelease_response[] = {
-  XK_F4, 3, 0xf7, 0, 0xfe,
-  XK_F9, 4, 0xfd, 0, 0xfe,
-  XK_Control_L, 7, 0xfe, 0, 0xfe,
-  XK_Control_R, 7, 0xfe, 0, 0xfe,
-  XK_F1, 3, 0xfe, 0, 0xfe,
-  XK_Up, 4, 0xef, 0, 0xfe,
-  XK_Down, 4, 0xf7, 0, 0xfe,
-  XK_Left, 3, 0xef, 0, 0xfe,
-  XK_Right, 4, 0xfb, 0, 0xfe,
-  XK_space, 7, 0xfe, -1, 0,
-  XK_exclam, 3, 0xfe, 0, 0xfd,
-  XK_quotedbl, 5, 0xfe, 0, 0xfd,
-  XK_numbersign, 3, 0xfb, 0, 0xfd,
-  XK_dollar, 3, 0xf7, 0, 0xfd,
-  XK_percent, 3, 0xef, 0, 0xfd,
-  XK_ampersand, 4, 0xef, 0, 0xfd,
-  XK_apostrophe, 4, 0xf7, 0, 0xfd,
-  XK_parenleft, 4, 0xfb, 0, 0xfd,
-  XK_parenright, 4, 0xfd, 0, 0xfd,
-  XK_asterisk, 7, 0xf7, 0, 0xfd,
-  XK_plus, 6, 0xfb, 0, 0xfd,
-  XK_comma, 7, 0xfb, 0, 0xfd,
-  XK_minus, 6, 0xf7, 0, 0xfd,
-  XK_period, 7, 0xfd, 0, 0xfd,
-  XK_slash, 7, 0xef, 0, 0xfd,
-  XK_0, 4, 0xfe, -1, 0,
-  XK_1, 3, 0xfe, -1, 0,
-  XK_2, 3, 0xfd, -1, 0,
-  XK_3, 3, 0xfb, -1, 0,
-  XK_4, 3, 0xf7, -1, 0,
-  XK_5, 3, 0xef, -1, 0,
-  XK_6, 4, 0xef, -1, 0,
-  XK_7, 4, 0xf7, -1, 0,
-  XK_8, 4, 0xfb, -1, 0,
-  XK_9, 4, 0xfd, -1, 0,
-  XK_colon, 0, 0xfb, 0, 0xfd,
-  XK_semicolon, 5, 0xfd, 0, 0xfd,
-  XK_less, 2, 0xf7, 0, 0xfd,
-  XK_equal, 6, 0xfd, 0, 0xfd,
-  XK_greater, 2, 0xef, 0, 0xfd,
-  XK_question, 0, 0xef, 0, 0xfd,
-  XK_at, 3, 0xfd, 0, 0xfd,
-  XK_A, 0, 0xfe, 1, 0xfe,
-  XK_a, 1, 0xfe, -1, 0,
-  XK_B, 0, 0xfe, 7, 0xf7,
-  XK_b, 7, 0xf7, -1, 0,
-  XK_C, 0, 0xfe, 0, 0xef,
-  XK_c, 0, 0xef, -1, 0,
-  XK_D, 0, 0xfe, 1, 0xfb,
-  XK_d, 1, 0xfb, -1, 0,
-  XK_E, 0, 0xfe, 2, 0xfb,
-  XK_e, 2, 0xfb, -1, 0,
-  XK_F, 0, 0xfe, 1, 0xf7,
-  XK_f, 1, 0xf7, -1, 0,
-  XK_G, 0, 0xfe, 1, 0xef,
-  XK_g, 1, 0xef, -1, 0,
-  XK_H, 0, 0xfe, 6, 0xef,
-  XK_h, 6, 0xef, -1, 0,
-  XK_I, 0, 0xfe, 5, 0xfb,
-  XK_i, 5, 0xfb, -1, 0,
-  XK_J, 0, 0xfe, 6, 0xf7,
-  XK_j, 6, 0xf7, -1, 0,
-  XK_K, 0, 0xfe, 6, 0xfb,
-  XK_k, 6, 0xfb, -1, 0,
-  XK_L, 0, 0xfe, 6, 0xfd,
-  XK_l, 6, 0xfd, -1, 0,
-  XK_M, 0, 0xfe, 7, 0xfd,
-  XK_m, 7, 0xfd, -1, 0,
-  XK_N, 0, 0xfe, 7, 0xfb,
-  XK_n, 7, 0xfb, -1, 0,
-  XK_O, 0, 0xfe, 5, 0xfd,
-  XK_o, 5, 0xfd, -1, 0,
-  XK_P, 0, 0xfe, 5, 0xfe,
-  XK_p, 5, 0xfe, -1, 0,
-  XK_Q, 0, 0xfe, 2, 0xfe,
-  XK_q, 2, 0xfe, -1, 0,
-  XK_R, 0, 0xfe, 2, 0xf7,
-  XK_r, 2, 0xf7, -1, 0,
-  XK_S, 0, 0xfe, 1, 0xfd,
-  XK_s, 1, 0xfd, -1, 0,
-  XK_T, 0, 0xfe, 2, 0xef,
-  XK_t, 2, 0xef, -1, 0,
-  XK_U, 0, 0xfe, 5, 0xf7,
-  XK_u, 5, 0xf7, -1, 0,
-  XK_V, 0, 0xfe, 7, 0xef,
-  XK_v, 7, 0xef, -1, 0,
-  XK_W, 0, 0xfe, 2, 0xfd,
-  XK_w, 2, 0xfd, -1, 0,
-  XK_X, 0, 0xfe, 0, 0xf7,
-  XK_x, 0, 0xf7, -1, 0,
-  XK_Y, 0, 0xfe, 5, 0xef,
-  XK_y, 5, 0xef, -1, 0,
-  XK_Z, 0, 0xfe, 0, 0xfb,
-  XK_z, 0, 0xfb, -1, 0,
-  XK_bracketleft, 5, 0xef, 0, 0xfd,
-  XK_backslash, 1, 0xfb, 0, 0xfd,
-  XK_bracketright, 5, 0xf7, 0, 0xfd,
-  XK_asciicircum, 6, 0xef, 0, 0xfd,
-  XK_underscore, 4, 0xfe, 0, 0xfd,
-  XK_grave, 5, 0xfb, 0, 0xfd,
-  XK_braceleft, 1, 0xf7, 0, 0xfd,
-  XK_bar, 1, 0xfd, 0, 0xfd,
-  XK_braceright, 1, 0xef, 0, 0xfd,
-  XK_asciitilde, 1, 0xfe, 0, 0xfd,
-};
-
-
+#define MAX_DISP_LEN 256
 #define BORDER_WIDTH  (20*SCALE)
+
 int rrnoshm=4;
 unsigned char mem[65536];
 unsigned char *memptr[8] = {
@@ -308,11 +74,8 @@ static FILE *spoolFile=NULL;
 static int flipFlop;
 
 /* Prototypes */
-void clear_keyboard(void);
 void loadrom(unsigned char *x);
 void startup(int *argc, char **argv);
-void process_keypress_keyports(KeySym ks);
-void process_keypress(XKeyEvent *kev);
 void check_events(void);
 void refresh(void);
 void closedown(void);
@@ -443,6 +206,47 @@ setup_sighandlers(void)
   sigaction(SIGSEGV, &sa, NULL);
 }
 
+static void
+emu_key_handler(KeySym ks, XKeyEvent *kev)
+{
+  char spool_filename[257];
+  char tape_filename[257];
+
+  switch (ks) {
+    case XK_q:
+      /* If Ctrl-q then Quit xAce */
+      if (spoolFile == NULL && kev->state & ControlMask) {
+        raise(SIGQUIT);
+        /* doesn't return */
+      }
+      break;
+
+    case XK_F3:
+      printf("Enter tape image file:");
+      scanf("%256s", tape_filename);
+      tape_attach(tape_filename);
+      break;
+
+    case XK_F11:
+      printf("Enter spool file:");
+      scanf("%256s", spool_filename);
+      spoolFile = fopen(spool_filename, "rt");
+      if (spoolFile) {
+        flipFlop=2;
+      } {
+        fprintf(stderr, "Error: Couldn't open file: %s\n", spool_filename);
+      }
+      break;
+
+    case XK_F12:
+      interrupted = 2; /* will cause a reset */
+      memset(mem+8192, 0xff, 57344);
+      refresh_screen = 1;
+      keyboard_clear();
+      break;
+  }
+}
+
 void
 main(int argc, char **argv)
 {
@@ -496,16 +300,15 @@ unsigned int
 in(int h, int l)
 {
   if(l==0xfe) /* keyboard */
-    switch(h)
-    {
-      case 0xfe: return(keyports[0]);
-      case 0xfd: return(keyports[1]);
-      case 0xfb: return(keyports[2]);
-      case 0xf7: return(keyports[3]);
-      case 0xef: return(keyports[4]);
-      case 0xdf: return(keyports[5]);
-      case 0xbf: return(keyports[6]);
-      case 0x7f: return(keyports[7]);
+    switch(h) {
+      case 0xfe: return(keyboard_get_keyport(0));
+      case 0xfd: return(keyboard_get_keyport(1));
+      case 0xfb: return(keyboard_get_keyport(2));
+      case 0xf7: return(keyboard_get_keyport(3));
+      case 0xef: return(keyboard_get_keyport(4));
+      case 0xdf: return(keyboard_get_keyport(5));
+      case 0xbf: return(keyboard_get_keyport(6));
+      case 0x7f: return(keyboard_get_keyport(7));
       default:  return(255);
     }
   return(255);
@@ -537,7 +340,7 @@ readch_from_spool_file(void)
       spoolFile = NULL;
       normal_speed();
     } else {
-      process_keypress_keyports(ks);
+      keyboard_process_keypress_keyports(ks);
     }
   }
 }
@@ -551,7 +354,7 @@ read_from_spool_file(void)
     readch_from_spool_file();
   } else if (flipFlop == 3) {
     flipFlop = 0;
-    clear_keyboard();
+    keyboard_clear();
   }
   flipFlop++;
 }
@@ -572,7 +375,6 @@ do_interrupt(void)
   check_events();
 
   /* be careful not to screw up any pending reset... */
-
   if (interrupted == 1)
     interrupted = 0;
 }
@@ -738,146 +540,6 @@ startup(int *argc, char **argv)
 }
 
 void
-clear_keyboard(void)
-{
-  keyports[0]=0xff;
-  keyports[1]=0xff;
-  keyports[2]=0xff;
-  keyports[3]=0xff;
-  keyports[4]=0xff;
-  keyports[5]=0xff;
-  keyports[6]=0xff;
-  keyports[7]=0xff;
-}
-
-void
-process_keypress_keyports(KeySym ks)
-{
-  int i;
-  int keyport1, keyport2;
-  int keyport1_and_value, keyport2_and_value;
-
-  for (i = 0; i < sizeof(keypress_response); i+= 5) {
-    if (keypress_response[i] == ks) {
-      keyport1 = keypress_response[i+1];
-      keyport2 = keypress_response[i+3];
-      keyport1_and_value = keypress_response[i+2];
-      keyport2_and_value = keypress_response[i+4];
-
-      keyports[keyport1] &= keyport1_and_value;
-      if (keyport2 != -1)
-        keyports[keyport2] &= keyport2_and_value;
-      break;
-    }
-  }
-}
-
-int
-process_keyrelease_keyports(KeySym ks)
-{
-  int i;
-  int keyfound = 0;
-  int keyport1, keyport2;
-  int keyport1_or_value, keyport2_or_value;
-
-  for (i = 0; i < sizeof(keyrelease_response); i+= 5) {
-    if (keyrelease_response[i] == ks) {
-      keyfound = 1;
-      keyport1 = keyrelease_response[i+1];
-      keyport2 = keyrelease_response[i+3];
-      keyport1_or_value = keyrelease_response[i+2];
-      keyport2_or_value = keyrelease_response[i+4];
-
-      keyports[keyport1] |= ~keyport1_or_value;
-      if (keyport2 != -1)
-        keyports[keyport2] |= ~keyport2_or_value;
-      break;
-    }
-  }
-  return keyfound;
-}
-
-void
-process_keypress_emu_commands(KeySym ks, XKeyEvent *kev)
-{
-  char spool_filename[257];
-  char tape_filename[257];
-
-  switch (ks) {
-    case XK_q:
-      /* If Ctrl-q then Quit xAce */
-      if (spoolFile == NULL && kev->state & ControlMask) {
-        raise(SIGQUIT);
-        /* doesn't return */
-      }
-      break;
-
-    case XK_F3:
-      printf("Enter tape image file:");
-      scanf("%256s", tape_filename);
-      tape_attach(tape_filename);
-      break;
-
-    case XK_F11:
-      printf("Enter spool file:");
-      scanf("%256s", spool_filename);
-      spoolFile = fopen(spool_filename, "rt");
-      if (spoolFile) {
-        flipFlop=2;
-      } {
-        fprintf(stderr, "Error: Couldn't open file: %s\n", spool_filename);
-      }
-      break;
-
-    case XK_F12:
-      interrupted = 2; /* will cause a reset */
-      memset(mem+8192, 0xff, 57344);
-      refresh_screen = 1;
-      clear_keyboard();
-      break;
-  }
-}
-
-void
-process_keypress(XKeyEvent *kev)
-{
-  char buf[3];
-  KeySym ks;
-
-  XLookupString(kev, buf, 2, &ks, NULL);
-  process_keypress_emu_commands(ks, kev);
-  process_keypress_keyports(ks);
-}
-
-
-void
-process_keyrelease(XKeyEvent *kev)
-{
-  char buf[3];
-  KeySym ks;
-
-  XLookupString(kev,buf,2,&ks,NULL);
-
-  if (!process_keyrelease_keyports(ks)) {
-    /* key not in keyrelease_response list */
-    switch (ks) {
-      case XK_Return:
-        keyports[6] |= 1;
-        break;
-
-      case XK_BackSpace:
-      case XK_Delete:
-        keyports[0] |= 1;
-        keyports[4] |= 1;
-        break;
-
-      default:
-        clear_keyboard();
-    }
-  }
-}
-
-void
 check_events(void)
 {
   static XEvent xev;
@@ -909,10 +571,10 @@ check_events(void)
           XAutoRepeatOn(display),XFlush(display);
         break;
       case KeyPress:
-        process_keypress((XKeyEvent *)&xev);
+        keyboard_keypress((XKeyEvent *)&xev, emu_key_handler);
         break;
       case KeyRelease:
-        process_keyrelease((XKeyEvent *)&xev);
+        keyboard_keyrelease((XKeyEvent *)&xev);
         break;
       default:
         fprintf(stderr,"unhandled X event, type %d\n",xev.type);
