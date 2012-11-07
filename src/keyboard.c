@@ -230,7 +230,7 @@ keyboard_keypress(XKeyEvent *kev, NonAceKeyHandler non_ace_key_handler)
 
   XLookupString(kev, buf, 20, &ks, NULL);
   keyboard_process_keypress_keyports(ks);
-  non_ace_key_handler(ks, kev);
+  non_ace_key_handler(ks, kev->state);
 }
 
 

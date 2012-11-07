@@ -207,7 +207,7 @@ setup_sighandlers(void)
 }
 
 static void
-emu_key_handler(KeySym ks, XKeyEvent *kev)
+emu_key_handler(KeySym ks, int key_state)
 {
   char spool_filename[257];
   char tape_filename[257];
@@ -215,7 +215,7 @@ emu_key_handler(KeySym ks, XKeyEvent *kev)
   switch (ks) {
     case XK_q:
       /* If Ctrl-q then Quit xAce */
-      if (spoolFile == NULL && kev->state & ControlMask) {
+      if (spoolFile == NULL && key_state & ControlMask) {
         raise(SIGQUIT);
         /* doesn't return */
       }

@@ -21,7 +21,7 @@
 #ifndef KEYBOARD_H
 #define KEYBOARD_H
 
-typedef void (*NonAceKeyHandler)(KeySym ks, XKeyEvent *kev);
+typedef void (*NonAceKeyHandler)(KeySym ks, int key_state);
 
 extern unsigned char keyboard_get_keyport(int port);
 extern void keyboard_keyboard(void);
