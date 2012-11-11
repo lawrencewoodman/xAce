@@ -33,6 +33,8 @@
 
 #include "keyboard.h"
 
+static NonAceKeyHandler keyboard_non_ace_key_handler = NULL;
+
 static unsigned char keyboard_ports[8] = {
   0xff, 0xff, 0xff, 0xff,
   0xff, 0xff, 0xff, 0xff
@@ -154,6 +156,13 @@ static const int keypress_response[] = {
   '\t', 7, 0xfe, -1, 0
 };
 
+void
+keyboard_init(NonAceKeyHandler non_ace_key_handler)
+{
+  keyboard_non_ace_key_handler = non_ace_key_handler;
+  keyboard_clear();
+}
+
 unsigned char
 keyboard_get_keyport(int port)
 {
@@ -187,7 +196,7 @@ keyboard_get_key_response(KeySym ks, int *keyport1, int *keyport2,
   return 0;
 }
 
-int
+static int
 keyboard_process_keypress_keyports(KeySym ks)
 {
   int key_found;
@@ -204,7 +213,7 @@ keyboard_process_keypress_keyports(KeySym ks)
   return key_found;
 }
 
-int
+static int
 keyboard_process_keyrelease_keyports(KeySym ks)
 {
   int key_found;
@@ -223,24 +232,16 @@ keyboard_process_keyrelease_keyports(KeySym ks)
 
 
 void
-keyboard_keypress(XKeyEvent *kev, NonAceKeyHandler non_ace_key_handler)
+keyboard_keypress(KeySym ks, int key_state)
 {
-  char buf[20];
-  KeySym ks;
-
-  XLookupString(kev, buf, 20, &ks, NULL);
   keyboard_process_keypress_keyports(ks);
-  non_ace_key_handler(ks, kev->state);
+  keyboard_non_ace_key_handler(ks, key_state);
 }
 
 
 void
-keyboard_keyrelease(XKeyEvent *kev)
+keyboard_keyrelease(KeySym ks)
 {
-  char buf[20];
-  KeySym ks;
-
-  XLookupString(kev, buf, 20, &ks, NULL);
   if (!keyboard_process_keyrelease_keyports(ks)) {
     keyboard_clear();
   }

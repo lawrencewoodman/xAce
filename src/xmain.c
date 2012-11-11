@@ -271,6 +271,7 @@ main(int argc, char **argv)
   handle_cli_args(argc, argv);
   setup_sighandlers();
   tape_add_observer(tape_observer);
+  keyboard_init(emu_key_handler);
   mainloop();
 }
 
@@ -340,7 +341,7 @@ readch_from_spool_file(void)
       spoolFile = NULL;
       normal_speed();
     } else {
-      keyboard_process_keypress_keyports(ks);
+      keyboard_keypress(ks, 0);
     }
   }
 }
@@ -357,6 +358,7 @@ read_from_spool_file(void)
     keyboard_clear();
   }
   flipFlop++;
+
 }
 
 void
@@ -542,9 +544,12 @@ startup(int *argc, char **argv)
 void
 check_events(void)
 {
+  KeySym ks;
+  char key_buf[20];
   static XEvent xev;
-  XConfigureEvent *conf_ev;
+  XKeyEvent *kev;
   XCrossingEvent *cev;
+  XConfigureEvent *conf_ev;
 
   while (XEventsQueued(display,QueuedAfterReading)){
     XNextEvent(display,&xev);
@@ -571,10 +576,14 @@ check_events(void)
           XAutoRepeatOn(display),XFlush(display);
         break;
       case KeyPress:
-        keyboard_keypress((XKeyEvent *)&xev, emu_key_handler);
+        kev = (XKeyEvent *)&xev;
+        XLookupString(kev, key_buf, 20, &ks, NULL);
+        keyboard_keypress(ks, kev->state);
         break;
       case KeyRelease:
-        keyboard_keyrelease((XKeyEvent *)&xev);
+        kev = (XKeyEvent *)&xev;
+        XLookupString(kev, key_buf, 20, &ks, NULL);
+        keyboard_keyrelease(ks);
         break;
       default:
         fprintf(stderr,"unhandled X event, type %d\n",xev.type);
