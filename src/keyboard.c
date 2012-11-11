@@ -196,7 +196,7 @@ keyboard_get_key_response(KeySym ks, int *keyport1, int *keyport2,
   return 0;
 }
 
-static int
+static void
 keyboard_process_keypress_keyports(KeySym ks)
 {
   int key_found;
@@ -210,10 +210,9 @@ keyboard_process_keypress_keyports(KeySym ks)
     if (keyport2 != -1)
       keyboard_ports[keyport2] &= keyport2_and_value;
   }
-  return key_found;
 }
 
-static int
+static void
 keyboard_process_keyrelease_keyports(KeySym ks)
 {
   int key_found;
@@ -227,9 +226,7 @@ keyboard_process_keyrelease_keyports(KeySym ks)
     if (keyport2 != -1)
       keyboard_ports[keyport2] |= ~keyport2_or_value;
   }
-  return key_found;
 }
-
 
 void
 keyboard_keypress(KeySym ks, int key_state)
@@ -238,11 +235,8 @@ keyboard_keypress(KeySym ks, int key_state)
   keyboard_non_ace_key_handler(ks, key_state);
 }
 
-
 void
 keyboard_keyrelease(KeySym ks)
 {
-  if (!keyboard_process_keyrelease_keyports(ks)) {
-    keyboard_clear();
-  }
+  keyboard_process_keyrelease_keyports(ks);
 }

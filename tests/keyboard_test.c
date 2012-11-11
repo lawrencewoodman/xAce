@@ -147,6 +147,35 @@ test_keyboard_keypress_pass_to_non_ace_key_handler()
   check_keyports(expected_keyports);
 }
 
+static void
+test_keyboard_keyrelease_from_single_key()
+{
+  unsigned char expected_keyports[8] = {
+    0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff
+  };
+
+  keyboard_init(non_ace_key_handler);
+  keyboard_keypress(XK_A, 0);
+  keyboard_keyrelease(XK_A);
+  check_keyports(expected_keyports);
+}
+
+static void
+test_keyboard_keyrelease_from_single_key_with_multiple_pressed()
+{
+  unsigned char expected_keyports[8] = {
+    0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xfe
+  };
+
+  keyboard_init(non_ace_key_handler);
+  keyboard_keypress(XK_A, 0);
+  keyboard_keypress(XK_Tab, 0);
+  keyboard_keyrelease(XK_A);
+  check_keyports(expected_keyports);
+}
+
 int main()
 {
   test_keyboard_clear();
@@ -155,5 +184,7 @@ int main()
   test_keyboard_keypress_symbol_on_physical_keyboard();
   test_keyboard_keypress_key_not_found();
   test_keyboard_keypress_pass_to_non_ace_key_handler();
+  test_keyboard_keyrelease_from_single_key();
+  test_keyboard_keyrelease_from_single_key_with_multiple_pressed();
   exit(0);
 }
