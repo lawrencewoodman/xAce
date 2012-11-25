@@ -63,7 +63,7 @@ static struct {
   int tape_attached;
   int tape_pos;
   char tape_filename[TAPE_MAX_FILENAME_SIZE];
-  MessageType message_type;
+  TapeMessageType message_type;
   char message[TAPE_MAX_MESSAGE_SIZE];
 } observer_status;
 
@@ -74,14 +74,14 @@ observer_status_init(void)
   observer_status.tape_attached = 0;
   observer_status.tape_pos = 0;
   observer_status.tape_filename[0] = 0;
-  observer_status.message_type = NO_MESSAGE;
+  observer_status.message_type = TAPE_NO_MESSAGE;
   observer_status.message[0] = 0;
 }
 
 static void
 observer(int tape_attached, int tape_pos,
  const char tape_filename[TAPE_MAX_FILENAME_SIZE],
- MessageType message_type, const char message[TAPE_MAX_MESSAGE_SIZE])
+ TapeMessageType message_type, const char message[TAPE_MAX_MESSAGE_SIZE])
 {
   observer_status.observer_called = 1;
   observer_status.tape_attached = tape_attached;
@@ -106,7 +106,7 @@ test_tape_add_observer()
   assert(observer_status.tape_attached == 1);
   assert(observer_status.tape_pos == 0);
   assert(strcmp(filename, observer_status.tape_filename) == 0);
-  assert(observer_status.message_type == MESSAGE);
+  assert(observer_status.message_type == TAPE_MESSAGE);
   assert(strcmp(observer_status.message, "Tape image attached.") == 0);
   tape_detach();
 
@@ -132,7 +132,7 @@ test_tape_attach_file_exists()
   assert(observer_status.tape_attached == 1);
   assert(observer_status.tape_pos == 0);
   assert(strcmp(filename, observer_status.tape_filename) == 0);
-  assert(observer_status.message_type == MESSAGE);
+  assert(observer_status.message_type == TAPE_MESSAGE);
   assert(strcmp(observer_status.message, "Tape image attached.") == 0);
 
   tape_detach();
@@ -166,7 +166,7 @@ test_tape_attach_file_can_not_create()
   assert(observer_status.tape_attached == 0);
   assert(observer_status.tape_pos == 0);
   assert(strcmp(filename, observer_status.tape_filename) == 0);
-  assert(observer_status.message_type == ERROR);
+  assert(observer_status.message_type == TAPE_ERROR);
   assert(strcmp(observer_status.message, "Couldn't create file.") == 0);
 
   tape_detach();
@@ -187,7 +187,7 @@ test_tape_detach_notifies_observers()
   assert(observer_status.tape_attached == 0);
   assert(observer_status.tape_pos == 0);
   assert(observer_status.tape_filename[0] == 0);
-  assert(observer_status.message_type == MESSAGE);
+  assert(observer_status.message_type == TAPE_MESSAGE);
   assert(strcmp(observer_status.message, "Tape image detached.") == 0);
 
   tape_clear_observers();
@@ -216,7 +216,7 @@ test_tape_load_p_first_dict_on_tape()
   assert(observer_status.tape_attached == 1);
   assert(observer_status.tape_pos == 28);
   assert(strcmp(observer_status.tape_filename, filename) == 0);
-  assert(observer_status.message_type == MESSAGE);
+  assert(observer_status.message_type == TAPE_MESSAGE);
   assert(strcmp(observer_status.message, "Found file: test") == 0);
 
   tape_load_p(mem, 10000);
@@ -231,7 +231,7 @@ test_tape_load_p_first_dict_on_tape()
   assert(observer_status.tape_attached == 1);
   assert(observer_status.tape_pos == 62);
   assert(strcmp(observer_status.tape_filename, filename) == 0);
-  assert(observer_status.message_type == MESSAGE);
+  assert(observer_status.message_type == TAPE_MESSAGE);
   assert(strcmp(observer_status.message, "Load complete.") == 0);
 
   tape_detach();
@@ -260,7 +260,7 @@ test_tape_load_p_second_dict_on_tape()
   assert(observer_status.tape_attached == 1);
   assert(observer_status.tape_pos == 62);
   assert(strcmp(observer_status.tape_filename, filename) == 0);
-  assert(observer_status.message_type == MESSAGE);
+  assert(observer_status.message_type == TAPE_MESSAGE);
   assert(strcmp(observer_status.message, "Skipping file: test") == 0);
 
   /* Load the header block */
@@ -272,7 +272,7 @@ test_tape_load_p_second_dict_on_tape()
   assert(observer_status.tape_attached == 1);
   assert(observer_status.tape_pos == 90);
   assert(strcmp(observer_status.tape_filename, filename) == 0);
-  assert(observer_status.message_type == MESSAGE);
+  assert(observer_status.message_type == TAPE_MESSAGE);
   assert(strcmp(observer_status.message, "Found file: test2") == 0);
 
   /* Load the data block */
@@ -288,7 +288,7 @@ test_tape_load_p_second_dict_on_tape()
   assert(observer_status.tape_attached == 1);
   assert(observer_status.tape_pos == 125);
   assert(strcmp(observer_status.tape_filename, filename) == 0);
-  assert(observer_status.message_type == MESSAGE);
+  assert(observer_status.message_type == TAPE_MESSAGE);
   assert(strcmp(observer_status.message, "Load complete.") == 0);
 
   tape_detach();
@@ -317,7 +317,7 @@ test_tape_save_p()
   assert(observer_status.tape_attached == 1);
   assert(observer_status.tape_pos == 28);
   assert(strcmp(filename, observer_status.tape_filename) == 0);
-  assert(observer_status.message_type == MESSAGE);
+  assert(observer_status.message_type == TAPE_MESSAGE);
   assert(strcmp(observer_status.message, "Saving to file: BCDEFGHIJK") == 0);
 
   tape_save_p(mem+50, 300);
@@ -325,7 +325,7 @@ test_tape_save_p()
   assert(observer_status.tape_attached == 1);
   assert(observer_status.tape_pos == 331);
   assert(strcmp(filename, observer_status.tape_filename) == 0);
-  assert(observer_status.message_type == MESSAGE);
+  assert(observer_status.message_type == TAPE_MESSAGE);
   assert(strcmp(observer_status.message, "Save complete.") == 0);
 
   tape_detach();

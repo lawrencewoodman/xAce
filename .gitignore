@@ -5,6 +5,7 @@
 xace
 tests/tape_test
 tests/keyboard_test
+tests/spooler_test
 
 # Makefiles
 Makefile

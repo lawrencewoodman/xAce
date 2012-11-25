@@ -38,6 +38,7 @@
 #include "z80.h"
 #include "tape.h"
 #include "keyboard.h"
+#include "spooler.h"
 #include "xace_icon.h"
 
 #define MAX_DISP_LEN 256
@@ -61,17 +62,21 @@ unsigned long tstates=0,tsmax=62500;
 int memattr[8]={0,1,1,1,1,1,1,1}; /* 8K RAM Banks */
 
 int hsize=256*SCALE,vsize=192*SCALE;
+
+/*
+ * interrupted states:
+ *   0 No interrupt
+ *   1 Interrupted
+ *   2 Processing Interrupt
+ */
 volatile int interrupted=0;
+int reset_ace = 0;
 int scrn_freq=2;
 
 /* Used to see if image needs refreshing on X display */
 unsigned char video_ram_old[24*32];
 
 int refresh_screen=1;
-
-/* The following are used for spooling */
-static FILE *spoolFile=NULL;
-static int flipFlop;
 
 /* Prototypes */
 void loadrom(unsigned char *x);
@@ -84,7 +89,7 @@ void closedown(void);
 void
 sigint_handler(int signum)
 {
-  if (interrupted < 2 ) interrupted = 1;
+  if (interrupted == 0) interrupted = 1;
 }
 
 /* Handle any Signals to do with quiting the program */
@@ -122,7 +127,7 @@ static void
 fast_speed(void)
 {
   set_itimer(1000);  /* 1000 ints/sec */
-  scrn_freq = 2;
+  scrn_freq = 4;
   tsmax = ULONG_MAX;
 }
 
@@ -130,22 +135,22 @@ fast_speed(void)
 static void
 tape_observer(int tape_attached, int tape_pos,
   const char tape_filename[TAPE_MAX_FILENAME_SIZE],
-  MessageType message_type, const char message[TAPE_MAX_MESSAGE_SIZE])
+  TapeMessageType message_type, const char message[TAPE_MAX_MESSAGE_SIZE])
 {
   switch (message_type) {
-    case NO_MESSAGE:
+    case TAPE_NO_MESSAGE:
       if (tape_attached)
         printf("TAPE: %s Pos: %04d\n", tape_filename, tape_pos);
       break;
 
-    case MESSAGE:
+    case TAPE_MESSAGE:
       if (tape_attached)
         printf("TAPE: %s Pos: %04d - %s\n", tape_filename, tape_pos, message);
       else
         printf("TAPE: empty tape Pos: %04d - %s\n", tape_pos, message);
       break;
 
-    case ERROR:
+    case TAPE_ERROR:
       if (tape_attached) {
         fprintf(stderr, "TAPE: %s Pos: %04d - Error: %s\n",
                 tape_filename, tape_pos, message);
@@ -157,12 +162,30 @@ tape_observer(int tape_attached, int tape_pos,
   }
 }
 
+static void
+spooler_observer(SpoolerMessage message)
+{
+  switch (message) {
+    case SPOOLER_OPENED:
+      printf("Opened spool file.\n");
+      break;
+
+    case SPOOLER_OPEN_ERROR:
+      fprintf(stderr, "Couldn't open spool file.\n");
+      break;
+
+    case SPOOLER_CLOSED:
+      normal_speed();
+      printf("Closed spool file.\n");
+      break;
+  }
+}
+
 void
 handle_cli_args(int argc, char **argv)
 {
   int arg_pos = 0;
   char *cli_switch;
-  char *spool_filename;
 
   while (arg_pos < argc) {
     cli_switch = argv[arg_pos];
@@ -172,11 +195,7 @@ handle_cli_args(int argc, char **argv)
       }
 
       if (++arg_pos < argc) {
-        spool_filename = argv[arg_pos];
-        spoolFile=fopen(spool_filename, "rt");
-        if (!spoolFile)
-          fprintf(stderr, "Error: Couldn't open file: %s\n", spool_filename);
-        flipFlop=2;
+        spooler_open(argv[arg_pos]);
       } else {
         fprintf(stderr, "Error: Missing filename for %s arg\n", cli_switch);
       }
@@ -188,22 +207,28 @@ handle_cli_args(int argc, char **argv)
 static void
 setup_sighandlers(void)
 {
-  struct sigaction sa;
-  memset(&sa, 0, sizeof(sa));
+  struct sigaction sa_quit;
+  struct sigaction sa_alarm;
+  memset(&sa_quit, 0, sizeof(sa_quit));
+  memset(&sa_alarm, 0, sizeof(sa_alarm));
 
-  sa.sa_handler = sigint_handler;
-  sa.sa_flags = SA_RESTART;
-  sigaction(SIGALRM, &sa, NULL);
+  sa_quit.sa_handler = sigquit_handler;
+  sa_quit.sa_flags = 0;
+  sa_alarm.sa_handler = sigint_handler;
+  sa_alarm.sa_flags = SA_RESTART;
 
-  sa.sa_handler = sigquit_handler;
-  sa.sa_flags = 0;
+  if (sigaction(SIGINT,  &sa_quit, NULL) < 0) goto error;
+  if (sigaction(SIGHUP,  &sa_quit, NULL) < 0) goto error;
+  if (sigaction(SIGILL,  &sa_quit, NULL) < 0) goto error;
+  if (sigaction(SIGTERM, &sa_quit, NULL) < 0) goto error;
+  if (sigaction(SIGQUIT, &sa_quit, NULL) < 0) goto error;
+  if (sigaction(SIGSEGV, &sa_quit, NULL) < 0) goto error;
+  if (sigaction(SIGALRM, &sa_alarm, NULL) < 0) goto error;
+  return;
 
-  sigaction(SIGINT,  &sa, NULL);
-  sigaction(SIGHUP,  &sa, NULL);
-  sigaction(SIGILL,  &sa, NULL);
-  sigaction(SIGTERM, &sa, NULL);
-  sigaction(SIGQUIT, &sa, NULL);
-  sigaction(SIGSEGV, &sa, NULL);
+error:
+  perror("sigaction failed");
+  exit(1);
 }
 
 static void
@@ -215,7 +240,7 @@ emu_key_handler(KeySym ks, int key_state)
   switch (ks) {
     case XK_q:
       /* If Ctrl-q then Quit xAce */
-      if (spoolFile == NULL && key_state & ControlMask) {
+      if (!spooler_active() && (key_state & ControlMask)) {
         raise(SIGQUIT);
         /* doesn't return */
       }
@@ -230,16 +255,11 @@ emu_key_handler(KeySym ks, int key_state)
     case XK_F11:
       printf("Enter spool file:");
       scanf("%256s", spool_filename);
-      spoolFile = fopen(spool_filename, "rt");
-      if (spoolFile) {
-        flipFlop=2;
-      } {
-        fprintf(stderr, "Error: Couldn't open file: %s\n", spool_filename);
-      }
+      spooler_open(spool_filename);
       break;
 
     case XK_F12:
-      interrupted = 2; /* will cause a reset */
+      reset_ace = 1; /* will cause a reset */
       memset(mem+8192, 0xff, 57344);
       refresh_screen = 1;
       keyboard_clear();
@@ -266,10 +286,11 @@ main(int argc, char **argv)
   memset(mem+8192, 0xff, 57344);
   memset(video_ram_old, 0xff, 768);
 
+  spooler_init(spooler_observer, keyboard_clear, keyboard_keypress);
   startup(&argc, argv);
+  setup_sighandlers();
   normal_speed();
   handle_cli_args(argc, argv);
-  setup_sighandlers();
   tape_add_observer(tape_observer);
   keyboard_init(emu_key_handler);
   mainloop();
@@ -330,55 +351,26 @@ fix_tstates(void)
   pause();
 }
 
-void
-readch_from_spool_file(void)
-{
-  KeySym ks;
-
-  if ((ks=fgetc(spoolFile))) {
-    if (ks == EOF) {
-      fclose(spoolFile);
-      spoolFile = NULL;
-      normal_speed();
-    } else {
-      keyboard_keypress(ks, 0);
-    }
-  }
-}
-
-void
-read_from_spool_file(void)
-{
-  if (!spoolFile) {return;}
-
-  if (flipFlop == 1) {
-    readch_from_spool_file();
-  } else if (flipFlop == 3) {
-    flipFlop = 0;
-    keyboard_clear();
-  }
-  flipFlop++;
-
-}
 
 void
 do_interrupt(void)
 {
   static int count=0;
+  if (interrupted == 1) {
+    interrupted = 2;
 
-  /* only do refresh() every 1/Nth */
-  count++;
-  if (count >= scrn_freq) {
-    count=0;
-    read_from_spool_file();
-    refresh();
-  }
+    /* only do refresh() every 1/Nth */
+    count++;
+    if (count >= scrn_freq) {
+      count=0;
+      spooler_read();
+      refresh();
+    }
 
-  check_events();
+    check_events();
 
-  /* be careful not to screw up any pending reset... */
-  if (interrupted == 1)
     interrupted = 0;
+  }
 }
 
 /* the remainder of xmain.c is based on xz80's xspectrum.c. */

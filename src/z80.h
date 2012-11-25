@@ -27,6 +27,7 @@ extern unsigned char *memptr[];
 extern int memattr[];
 extern int hsize,vsize;
 extern volatile int interrupted;
+extern int reset_ace;
 
 extern unsigned int in(int h, int l);
 extern unsigned int out(int h,int l, int a);

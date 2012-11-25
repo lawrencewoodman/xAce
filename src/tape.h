@@ -23,11 +23,11 @@
 #define TAPE_MAX_MESSAGE_SIZE 256
 #define TAPE_MAX_OBSERVERS 10
 
-typedef enum MessageType {
-  NO_MESSAGE,
-  MESSAGE,
-  ERROR,
-} MessageType;
+typedef enum TapeMessageType {
+  TAPE_NO_MESSAGE,
+  TAPE_MESSAGE,
+  TAPE_ERROR,
+} TapeMessageType;
 
 /**
  * Observer for the status of the tape emulation
@@ -40,7 +40,7 @@ typedef enum MessageType {
  */
 typedef void (*TapeObserver)(int tape_attached, int tape_pos,
   const char _tape_filename[TAPE_MAX_FILENAME_SIZE],
-  MessageType message_type,
+  TapeMessageType message_type,
   const char message[TAPE_MAX_MESSAGE_SIZE]);
 
 void tape_clear_observers(void);

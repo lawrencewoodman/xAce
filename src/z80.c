@@ -74,21 +74,20 @@ mainloop(void) {
     if(tstates>tsmax)
       fix_tstates();
 
-    if(interrupted&&intsample) {
-      if (iff1) {
-        do_interrupt();
-        push2(pc);
-        pc=0x38;
-      }
-
-      if(interrupted==2) {
-        /* actually a kludge to let us do a reset */
-        a=f=b=c=d=e=h=l=a1=f1=b1=c1=d1=e1=h1=l1=i=r=iff1=iff2=im=0;
-        ixoriy=new_ixoriy=0;
-        ix=iy=sp=pc=0;
-        tstates=radjust=0;
-      }
+    if(interrupted == 1 && intsample && iff1) {
+      do_interrupt();
+      push2(pc);
+      pc=0x38;
       interrupted=0;
+    }
+
+    if (reset_ace) {
+      /* actually a kludge to let us do a reset */
+      a=f=b=c=d=e=h=l=a1=f1=b1=c1=d1=e1=h1=l1=i=r=iff1=iff2=im=0;
+      ixoriy=new_ixoriy=0;
+      ix=iy=sp=pc=0;
+      tstates=radjust=0;
+      reset_ace = 0;
     }
   }
 }
