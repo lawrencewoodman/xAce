@@ -27,6 +27,6 @@ extern void keyboard_init(NonAceKeyHandler non_ace_key_handler);
 extern unsigned char keyboard_get_keyport(int port);
 extern void keyboard_clear(void);
 extern void keyboard_keypress(KeySym ks, int key_state);
-extern void keyboard_keyrelease(KeySym ks);
+extern void keyboard_keyrelease(KeySym ks, int key_state);
 
 #endif

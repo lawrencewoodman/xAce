@@ -231,12 +231,14 @@ keyboard_process_keyrelease_keyports(KeySym ks)
 void
 keyboard_keypress(KeySym ks, int key_state)
 {
-  keyboard_process_keypress_keyports(ks);
+  if (!(key_state & ControlMask))
+    keyboard_process_keypress_keyports(ks);
   keyboard_non_ace_key_handler(ks, key_state);
 }
 
 void
-keyboard_keyrelease(KeySym ks)
+keyboard_keyrelease(KeySym ks, int key_state)
 {
-  keyboard_process_keyrelease_keyports(ks);
+  if (!(key_state & ControlMask))
+    keyboard_process_keyrelease_keyports(ks);
 }

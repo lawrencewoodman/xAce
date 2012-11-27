@@ -578,7 +578,7 @@ check_events(void)
         if (!spooler_active()) {
           kev = (XKeyEvent *)&xev;
           XLookupString(kev, key_buf, 20, &ks, NULL);
-          keyboard_keyrelease(ks);
+          keyboard_keyrelease(ks, kev->state);
         }
         break;
       default:

@@ -139,10 +139,28 @@ test_keyboard_keypress_pass_to_non_ace_key_handler()
 
   non_ace_key_handler_init();
   keyboard_init(non_ace_key_handler);
-  keyboard_keypress(XK_A, 5);
+  keyboard_keypress(XK_A, 0);
   assert(non_ace_key_handler_status.handler_called);
   assert(non_ace_key_handler_status.keySym == XK_A);
-  assert(non_ace_key_handler_status.key_state == 5);
+  assert(non_ace_key_handler_status.key_state == 0);
+
+  check_keyports(expected_keyports);
+}
+
+static void
+test_keyboard_keypress_ignore_keyports_for_keys_pressed_with_control_key()
+{
+  unsigned char expected_keyports[8] = {
+    0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff
+  };
+
+  non_ace_key_handler_init();
+  keyboard_init(non_ace_key_handler);
+  keyboard_keypress(XK_A, ControlMask);
+  assert(non_ace_key_handler_status.handler_called);
+  assert(non_ace_key_handler_status.keySym == XK_A);
+  assert(non_ace_key_handler_status.key_state == ControlMask);
 
   check_keyports(expected_keyports);
 }
@@ -157,7 +175,7 @@ test_keyboard_keyrelease_from_single_key()
 
   keyboard_init(non_ace_key_handler);
   keyboard_keypress(XK_A, 0);
-  keyboard_keyrelease(XK_A);
+  keyboard_keyrelease(XK_A, 0);
   check_keyports(expected_keyports);
 }
 
@@ -172,7 +190,21 @@ test_keyboard_keyrelease_from_single_key_with_multiple_pressed()
   keyboard_init(non_ace_key_handler);
   keyboard_keypress(XK_A, 0);
   keyboard_keypress(XK_Tab, 0);
-  keyboard_keyrelease(XK_A);
+  keyboard_keyrelease(XK_A, 0);
+  check_keyports(expected_keyports);
+}
+
+static void
+test_keyboard_keyrelease_ignore_keyports_for_keys_pressed_with_control_key()
+{
+  unsigned char expected_keyports[8] = {
+    0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff
+  };
+
+  keyboard_init(non_ace_key_handler);
+  keyboard_keyrelease(XK_A, ControlMask);
+
   check_keyports(expected_keyports);
 }
 
@@ -184,7 +216,9 @@ int main()
   test_keyboard_keypress_symbol_on_physical_keyboard();
   test_keyboard_keypress_key_not_found();
   test_keyboard_keypress_pass_to_non_ace_key_handler();
+  test_keyboard_keypress_ignore_keyports_for_keys_pressed_with_control_key();
   test_keyboard_keyrelease_from_single_key();
   test_keyboard_keyrelease_from_single_key_with_multiple_pressed();
+  test_keyboard_keyrelease_ignore_keyports_for_keys_pressed_with_control_key();
   exit(0);
 }
