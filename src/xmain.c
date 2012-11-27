@@ -240,7 +240,7 @@ emu_key_handler(KeySym ks, int key_state)
   switch (ks) {
     case XK_q:
       /* If Ctrl-q then Quit xAce */
-      if (!spooler_active() && (key_state & ControlMask)) {
+      if (key_state & ControlMask) {
         raise(SIGQUIT);
         /* doesn't return */
       }
@@ -568,14 +568,18 @@ check_events(void)
           XAutoRepeatOn(display),XFlush(display);
         break;
       case KeyPress:
-        kev = (XKeyEvent *)&xev;
-        XLookupString(kev, key_buf, 20, &ks, NULL);
-        keyboard_keypress(ks, kev->state);
+        if (!spooler_active()) {
+          kev = (XKeyEvent *)&xev;
+          XLookupString(kev, key_buf, 20, &ks, NULL);
+          keyboard_keypress(ks, kev->state);
+        }
         break;
       case KeyRelease:
-        kev = (XKeyEvent *)&xev;
-        XLookupString(kev, key_buf, 20, &ks, NULL);
-        keyboard_keyrelease(ks);
+        if (!spooler_active()) {
+          kev = (XKeyEvent *)&xev;
+          XLookupString(kev, key_buf, 20, &ks, NULL);
+          keyboard_keyrelease(ks);
+        }
         break;
       default:
         fprintf(stderr,"unhandled X event, type %d\n",xev.type);

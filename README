@@ -111,6 +111,8 @@ Spooling:
 		./xace -s spool.file
 	or to spool more quickly, use -S e.g.
 		./xace -S spool.file
+	The host keyboard response is turned off during spooling to avoid
+	corruption.
 
 Software for the Jupiter Ace:
 	The Jupiter Ace Resource Site (http://www.jupiter-ace.co.uk) is
