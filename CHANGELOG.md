@@ -1,6 +1,9 @@
-## 0.4.2 (TBC)
+## 0.5 (22nd December 2012)
 
- * Creates proper checksum when saving files.
+ * Switch build method from IMake to CMake.
+ * Support attaching of tape files.
+ * Add file spooling.
+ * Create proper checksum when saving files.
 
 ## 0.4.1 (29th June 2010)
 
