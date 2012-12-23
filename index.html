@@ -5,21 +5,28 @@ menuOption: home
 ---
 
 <h2>What is xAce?</h2>
-xAce is an emulator for the Jupiter Ace that runs under most flavours of Unix.&nbsp; It 
-was written by Edward Patel and based on a ZX81 emulator called <em>xz81</em> written by 
-Russell Marks, which was in turn based on Ian Collier&#039;s <em>xz80</em>, a ZX Spectrum
-emulator for X.
-			
+xAce is an emulator for the Jupiter Ace that runs under most flavours of
+Unix. It was written by Edward Patel and based on a ZX81 emulator called
+<em>xz81</em> written by Russell Marks, which was in turn based on
+Ian Collier&#039;s <em>xz80</em>, a ZX Spectrum emulator for X.
+
 <h2>Compiling</h2>
-First download and extract the source code from
-<a href="http://github.com/LawrenceWoodman/xAce/tags">GitHub</a>.<br />
+First download and extract the source code from:
+<a href="https://github.com/LawrenceWoodman/xAce/archive/v0.5.zip">GitHub</a>.<br />
+From the root directory of the repository. Create the Makefiles:<br />
+  <code>$ cmake .</code><br />
 <br />
-If you have <code>xmkmf</code>, run:<br />
-<code>$ xmkmf</code><br />
-<code>$ make</code><br />
+Now run 'make' from the same directory:<br />
+  <code>$ make</code><br />
 <br />
-If you don't have <code class="inlin">xmkmf</code>, run:<br />
-<code>$ make -f makefile.org</code><br />
+The binary executable will now be in <code>src/</code>, to install it to a
+sensible location such as <code>/usr/local/bin</code> run the following
+as root:<br />
+  <code>$ make install</code></br>
 <br />
-Once it has compiled run:<br />
-<code>$ ./xace</code><br />
+For the moment xAce must be run from a terminal window and from the
+same directory in which the rom image is to be found.  So from the
+current directory run:<br />
+  <code>./xace</code><br />
+<br />
+<em>Please see the README for more details.</em>
