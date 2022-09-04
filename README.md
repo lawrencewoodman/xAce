@@ -1,8 +1,6 @@
 xAce
 ====
 
-![xAce](xAce.png)
-
                   /\            
         __  __   /  \   ___ ___ 
         \ \/ /  / /\ \ / __/ _ \
@@ -22,7 +20,9 @@ xAce
 	ZX Spectrum emulator for X. The xz81 can be found (2010) at 
 	http://www.zx81.nl/dload/emulators/unix/z81-0.2.tar.gz
 
-________________________________________________________________________________
+![xAce](xAce.png)
+Jupiter ACE emulator running on MacOS.
+
 4 Sep 2022
 
 Updated to build xAce on Linux and MacOS.
