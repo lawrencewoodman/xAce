@@ -21,7 +21,6 @@ xAce
 	http://www.zx81.nl/dload/emulators/unix/z81-0.2.tar.gz
 
 ![xAce](xAce.png)
-Jupiter ACE emulator running on MacOS.
 
 4 Sep 2022
 
