@@ -48,7 +48,7 @@ following command in a Terminal window:
     xcode-select --install
 
 After installing XQuartz, you should have a /opt/X11 folder.  You can check
-this with Terminal:
+this in a Terminal window:
 
     ls /opt/X11
     bin     etc     include lib     libexec share   var
@@ -80,7 +80,7 @@ line with `link_directories` and two lines with `target_include_directories`:
     add_test(keyboard_test keyboard_test)
     add_test(spooler_test spooler_test)
 
-Then build and run xAce in xAce-0.5/src with:
+Build and run xAce in xAce-0.5/src with:
 
     cd xAce-0.5
     cmake .
