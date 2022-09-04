@@ -90,6 +90,13 @@ Then build and run xAce in xAce-0.5/src with:
 Manual
 ------
 
+The Jupiter ACE includes an excellent introduction to Forth programming.
+Searchable PDF versions of the manual are available at:
+
+http://www.jupiter-ace.co.uk/usermanual.html#ace_manuals
+
+More documents and manuals are available at:
+
 http://www.jupiter-ace.co.uk/documents_index.html
 
 Software
