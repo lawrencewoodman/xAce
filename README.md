@@ -118,7 +118,7 @@ In xAce enter:
     load TUTTUT
     tuttut
 
-More links to resources further below.
+More information and links to resources further below.
 
 -Robert
 ________________________________________________________________________________
