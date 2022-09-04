@@ -19,6 +19,85 @@
 
 ----------------------------------------------------------------------
 
+![xAce](xAce.png)
+
+4 Sep 2022
+
+Updated to build xAce on Linux and MacOS.
+
+Linux
+-----
+
+To build and run xAce on Linux:
+
+    cd xAce-0.5
+    cmake .
+    make
+    src/xace
+
+MacOS
+-----
+
+To build xAce on MacOS, install [Xcode](https://developer.apple.com/xcode) and
+[XQuartz](https://www.xquartz.org).
+
+After installing Xcode, install the Xcode command line tools by running the
+following command in a Terminal window:
+
+    xcode-select --install
+
+After installing XQuartz, you should have a /opt/X11 folder.  You can check
+this with Terminal:
+
+    ls /opt/X11
+    bin     etc     include lib     libexec share   var
+
+Edit src/CMakeFiles.txt and change this file by adding two lines, one line with
+`link_directories` and another line with `target_include_directories`:
+
+    add_definitions(-DSCALE=2 -DWHITE_ON_BLACK -DXACE_VERSION=\"0.5\")
+    link_directories(/opt/X11/lib)
+    add_executable(xace xmain.c z80.c tape.c keyboard.c spooler.c)
+    target_include_directories(xace PUBLIC /opt/X11/include)
+    target_link_libraries(xace X11 Xext)
+    install(TARGETS xace DESTINATION bin)
+
+Then build and run xAce in xAce-0.5/src with:
+
+    cd xAce-0.5/src
+    cmake .
+    make
+    cd ..
+    ./xace
+
+Manual
+------
+
+http://www.jupiter-ace.co.uk/documents_index.html
+
+Software
+--------
+
+Lots of software for the Jupiter ACE can be found here:
+
+http://www.jupiter-ace.co.uk/software_index_mag.html
+
+To load a tap file, press F3 in xAce to enter a tape image.  For example
+[Tut-tut](http://www.jupiter-ace.co.uk/sw_tut-tut.html):
+
+    Press F3
+    Enter tape image file:tut-tut.tap
+    TAPE: tut-tut.tap Pos: 0000 - Tape image attached.
+
+In xAce enter:
+
+    load TUTTUT
+    tuttut
+
+-Robert
+
+----------------------------------------------------------------------
+
 9 May 2010
 
 The project has been revived at github by http://github.com/LawrenceWoodman
