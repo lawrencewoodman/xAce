@@ -17,7 +17,7 @@
 	ZX Spectrum emulator for X. The xz81 can be found (2010) at 
 	http://www.zx81.nl/dload/emulators/unix/z81-0.2.tar.gz
 
-----------------------------------------------------------------------
+________________________________________________________________________________
 
 ![xAce](xAce.png)
 
@@ -95,8 +95,7 @@ In xAce enter:
     tuttut
 
 -Robert
-
-----------------------------------------------------------------------
+________________________________________________________________________________
 
 9 May 2010
 
@@ -104,12 +103,11 @@ The project has been revived at github by http://github.com/LawrenceWoodman
 
 I have updated a couple of broken references.
 
-I can recommend downloading a copy of "Thinking Forth"
-http://thinking-forth.sourceforge.net/
+I can recommend downloading a copy of
+[Thinking Forth](http://thinking-forth.sourceforge.net)
 
 -Edward
-
-----------------------------------------------------------------------
+________________________________________________________________________________
 
 15 Feb 1999
 
@@ -223,3 +221,4 @@ Share and enjoy!
 
 
 "An idiot with a computer is a faster, better idiot" - Rich Julius
+________________________________________________________________________________
