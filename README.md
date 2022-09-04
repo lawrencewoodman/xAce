@@ -53,8 +53,8 @@ this with Terminal:
     ls /opt/X11
     bin     etc     include lib     libexec share   var
 
-Edit src/CMakeFiles.txt and change this file by adding two lines, one line with
-`link_directories` and another line with `target_include_directories`:
+Edit src/CMakeFiles.txt and change this file by adding two more lines, one line
+with `link_directories` and another line with `target_include_directories`:
 
     add_definitions(-DSCALE=2 -DWHITE_ON_BLACK -DXACE_VERSION=\"0.5\")
     link_directories(/opt/X11/lib)
@@ -63,13 +63,29 @@ Edit src/CMakeFiles.txt and change this file by adding two lines, one line with
     target_link_libraries(xace X11 Xext)
     install(TARGETS xace DESTINATION bin)
 
+Edit tests/CMakeFiles.txt and change this file by adding three more lines, one
+line with `link_directories` and two lines with `target_include_directories`:
+
+    include_directories(${xAce_SOURCE_DIR}/src)
+    link_directories(/opt/X11/lib)
+    add_executable(tape_test tape_test.c ${xAce_SOURCE_DIR}/src/tape.c)
+    add_executable(keyboard_test keyboard_test.c ${xAce_SOURCE_DIR}/src/keyboard.c)
+    add_executable(spooler_test spooler_test.c ${xAce_SOURCE_DIR}/src/spooler.c)
+    target_include_directories(keyboard_test PUBLIC /opt/X11/include)
+    target_include_directories(spooler_test PUBLIC /opt/X11/include)
+    target_link_libraries(tape_test)
+    target_link_libraries(keyboard_test X11)
+    target_link_libraries(spooler_test)
+    add_test(tape_test tape_test)
+    add_test(keyboard_test keyboard_test)
+    add_test(spooler_test spooler_test)
+
 Then build and run xAce in xAce-0.5/src with:
 
-    cd xAce-0.5/src
+    cd xAce-0.5
     cmake .
     make
-    cd ..
-    ./xace
+    src/xace
 
 Manual
 ------
