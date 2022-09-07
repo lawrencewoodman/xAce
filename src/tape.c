@@ -36,7 +36,7 @@ static int tape_eof(void);
 static void tape_rewind_to_start(void);
 static void tape_attach_empty_tape(char load_type);
 static void tape_extract_filename(char *filename, char *mem);
-static void tape_load_block(char *mem, int block_dest_offset);
+static int tape_load_block(char *mem, int block_dest_offset);
 static void tape_skip_block(void);
 static void tape_load_empty_tape_block(char *mem, int block_dest_offset);
 static void tape_truncate(void);
@@ -171,19 +171,25 @@ tape_load_p(char *mem, int block_dest_offset)
     sprintf(message, "Searching for file: %s", requested_filename);
     tape_notify_observers(TAPE_MESSAGE, message);
 
-    tape_load_block(mem, block_dest_offset);
-    tape_extract_filename(found_filename, mem+block_dest_offset+1);
-    if (strcmp(requested_filename, found_filename) != 0) {
-      sprintf(message, "Skipping file: %s", found_filename);
-      tape_skip_block();
+    if (tape_load_block(mem, block_dest_offset)) {
+      sprintf(message, "Incomplete block in file: %s", found_filename);
     } else {
-      sprintf(message, "Found file: %s", found_filename);
-      load_header = 0;
+      tape_extract_filename(found_filename, mem+block_dest_offset+1);
+      if (strcmp(requested_filename, found_filename) != 0) {
+        sprintf(message, "Skipping file: %s", found_filename);
+        tape_skip_block();
+      } else {
+        sprintf(message, "Found file: %s", found_filename);
+        load_header = 0;
+      }
     }
   } else {
-    tape_load_block(mem, block_dest_offset);
-    sprintf(message, "Load complete.");
-    load_header = 1;
+    if (tape_load_block(mem, block_dest_offset)) {
+      sprintf(message, "Incomplete block in file: %s", found_filename);
+    } else {
+      sprintf(message, "Load complete.");
+      load_header = 1;
+    }
   }
 
   tape_notify_observers(TAPE_MESSAGE, message);
@@ -297,7 +303,7 @@ tape_load_empty_tape_block(char *mem, int block_dest_offset)
   empty_tape_pos += block_size;
 }
 
-static void
+static int
 tape_load_block(char *mem, int block_dest_offset)
 {
   int block_size;
@@ -307,12 +313,15 @@ tape_load_block(char *mem, int block_dest_offset)
     if (!feof(tape_fp)) {
       block_size += fgetc(tape_fp) << 8;
       /* Read block less the checksum */
-      fread(mem+block_dest_offset, 1, block_size-1, tape_fp);
+      if (fread(mem+block_dest_offset, 1, block_size-1, tape_fp) != block_size-1)
+        return 1;
       fgetc(tape_fp); /* skip checksum */
     }
   } else {
     tape_load_empty_tape_block(mem, block_dest_offset);
   }
+
+  return 0;
 }
 
 static void
