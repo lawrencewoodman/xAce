@@ -231,6 +231,13 @@ error:
   exit(1);
 }
 
+static void get_filename(char *filename, int size)
+{
+      fgets(filename, size, stdin);
+      /* remove \n */
+      filename[strlen(filename) - 1] = '\0';
+}
+
 static void
 emu_key_handler(KeySym ks, int key_state)
 {
@@ -248,13 +255,13 @@ emu_key_handler(KeySym ks, int key_state)
 
     case XK_F3:
       printf("Enter tape image file:");
-      scanf("%256s", tape_filename);
+      get_filename(tape_filename, 256);
       tape_attach(tape_filename);
       break;
 
     case XK_F11:
       printf("Enter spool file:");
-      scanf("%256s", spool_filename);
+      get_filename(spool_filename, 256);
       spooler_open(spool_filename);
       break;
 
